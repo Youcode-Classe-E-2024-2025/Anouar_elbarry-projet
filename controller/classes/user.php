@@ -66,7 +66,18 @@ class User {
         }
     }
     
-    public function login($email, $password){
+    static function login($db ,$email, $password){
+        $conn = $db->getConnection();
+        $query = "SELECT * FROM users WHERE email=:email";
+        $stmt = $conn->prepare($query);
+        $stmt->execute(["email"=> $email]);
+        $user = $stmt->fetch(PDO::FETCH_ASSOC);
+         if($user && password_verify($password, $user["usarPassword"])){
+           return true;
+         }
+         else {
+            return false;
+         }
     }
     
     public function updateProfile($name, $email){
