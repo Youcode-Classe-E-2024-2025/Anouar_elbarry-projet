@@ -78,44 +78,75 @@
                 <i class="fas fa-plus-circle mr-2 text-blue-600"></i>Create New Task
             </h2>
             <form id="newTaskForm">
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Task Title</label>
-                    <input type="text" id="taskTitle" required 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                </div>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="col-span-2">
+                        <label class="block text-gray-700 font-semibold mb-2">Task Title</label>
+                        <input 
+                            type="text" 
+                            id="taskTitle" 
+                            placeholder="Enter task title" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            required
+                        >
+                    </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Category</label>
-                    <select id="taskCategory" 
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="" selected>Select Category</option>
-                        <option value="work">Work</option>
-                        <option value="personal">Personal</option>
-                        <option value="learning">Learning</option>
-                        <option value="health">Health</option>
-                        <option value="other">Other</option>
-                    </select>
-                </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Category</label>
+                        <select id="taskCategory" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="" selected>Select Category</option>
+                            <option value="work">Work</option>
+                            <option value="personal">Personal</option>
+                            <option value="learning">Learning</option>
+                        </select>
+                    </div>
 
-                <div class="mb-4">
-                    <label class="block text-gray-700 font-semibold mb-2">Team Members</label>
-                    <button type="button" id="selectTeamMembersBtn" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-left">
-                        Select Team Members
-                    </button>
-                    <input type="hidden" id="selectedTeamMembers" name="teamMembers" value="">
-                </div>
+                    <div>
+                        <label class="block text-gray-700 font-semibold mb-2">Tags</label>
+                        <select id="taskTags"  
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="basic" selected>Basic</option>
+                            <option value="bug">Bug</option>
+                            <option value="feature">Feature</option>
+                        </select>
+                    </div>
 
-                <div class="mb-6">
-                    <label class="block text-gray-700 font-semibold mb-2">Tags</label>
-                    <select id="taskTags"  
-                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500">
-                        <option value="basic" selected>Basic</option>
-                        <option value="bug">Bug</option>
-                        <option value="feature">Feature</option>
-                    </select>
-                </div>
+                    <div class="col-span-2">
+                        <label class="block text-gray-700 font-semibold mb-2">Description</label>
+                        <textarea 
+                            id="taskDescription" 
+                            placeholder="Add a brief description (optional)" 
+                            class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 h-20 resize-y"
+                        ></textarea>
+                    </div>
 
-                <div class="flex justify-between">
+                    <div class="col-span-2">
+                        <label class="block text-gray-700 font-semibold mb-2">Priority</label>
+                        <div class="flex space-x-4 justify-between">
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="taskPriority" value="low" class="form-radio" checked>
+                                <span class="ml-2 text-green-600">Low</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="taskPriority" value="medium" class="form-radio">
+                                <span class="ml-2 text-yellow-600">Medium</span>
+                            </label>
+                            <label class="inline-flex items-center">
+                                <input type="radio" name="taskPriority" value="high" class="form-radio">
+                                <span class="ml-2 text-red-600">High</span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="col-span-2">
+                        <label class="block text-gray-700 font-semibold mb-2">Team Members</label>
+                        <button type="button" id="selectTeamMembersBtn" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-left">
+                            Select Team Members
+                        </button>
+                        <input type="hidden" id="selectedTeamMembers" name="teamMembers" value="">
+                    </div>
+                </div>
+                <div class="flex justify-between mt-6">
                     <button type="button" id="cancelTaskBtn" 
                         class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors">
                         Cancel

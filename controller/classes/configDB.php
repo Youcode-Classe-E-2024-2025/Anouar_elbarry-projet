@@ -4,19 +4,25 @@ class Database {
    private string $username = "root";
    private string $password = "Jppp5734";
    private string $db_name = "ProTask";
-   private string $conn;
+   private PDO $conn;
 
    public function __construct() {
       try {
-         $this->conn = mysqli_connect($this->host, $this->username, $this->password, $this->db_name);
+         $this->conn = new PDO(
+           "mysql:host=".$this->host.
+           ";dbname=".$this->db_name,
+           $this->username,
+           $this->password
+         );
+      
+         $this->conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
       }
-      catch (mysqli_sql_exception $e) {
+      catch (PDOException $e) {
          echo "Database Connection Error: ". $e->getMessage();
+         die();
       }
-    // Check connection
-    if (!$this->conn) {
-      die("Connection failed ");
-  }
-   
+   }
+   public function getConnection() {
+      return $this->conn;
+   }
 }
-}     

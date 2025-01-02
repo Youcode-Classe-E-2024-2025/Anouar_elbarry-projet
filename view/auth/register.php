@@ -13,7 +13,7 @@
             <div class="p-8">
                 <h2 class="text-3xl font-bold text-center text-gray-800 mb-6">Create an Account</h2>
                 
-                <form @submit.prevent="submitRegistration" class="space-y-4">
+                <form action="../../controller/register_process.php" method="POST" class="space-y-4">
                     <div>
                         <label for="username" class="block text-sm font-medium text-gray-700 mb-2">Username</label>
                         <div class="relative">
@@ -29,6 +29,7 @@
                                 class="pl-10 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
                                 placeholder="Choose a unique username"
                                 @input="checkUsernameAvailability"
+                                name="username"
                             >
                             <div x-show="usernameStatus" class="absolute right-0 top-0 mt-2 mr-3">
                                 <span x-show="usernameStatus === 'available'" class="text-green-500">✓</span>
@@ -50,6 +51,7 @@
                             </div>
                             <input 
                                 type="email" 
+                                name="email"
                                 x-model="email" 
                                 required 
                                 class="pl-10 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-green-500 focus:border-green-500"
@@ -67,6 +69,7 @@
                                 </svg>
                             </div>
                             <input 
+                                 name="password"
                                 :type="showPassword ? 'text' : 'password'" 
                                 x-model="password" 
                                 required 
@@ -153,79 +156,37 @@
                 email: '',
                 password: '',
                 confirmPassword: '',
-                showPassword: false,
                 agreeTerms: false,
-                usernameStatus: '',
+                showPassword: false,
+                usernameStatus: null,
 
                 checkUsernameAvailability() {
                     // Simulated username availability check
-                    if (!this.username) {
-                        this.usernameStatus = '';
-                        return;
-                    }
-
-                    // Simulate an AJAX call to check username availability
-                    fetch('check_username.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({ username: this.username })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        this.usernameStatus = data.available ? 'available' : 'taken';
-                    })
-                    .catch(error => {
-                        console.error('Username check error:', error);
-                        this.usernameStatus = '';
-                    });
+                    const reservedUsernames = ['admin', 'root', 'system'];
+                    this.usernameStatus = reservedUsernames.includes(this.username.toLowerCase()) ? 'taken' : 'available';
                 },
 
                 submitRegistration() {
-                    // Validate form data
+                    // Client-side validation
+                    if (!this.agreeTerms) {
+                        alert('Please agree to the terms and conditions');
+                        return;
+                    }
+
                     if (this.password !== this.confirmPassword) {
                         alert('Passwords do not match');
                         return;
                     }
 
-                    if (!this.agreeTerms) {
-                        alert('Please agree to the Terms and Conditions');
+                    if (this.password.length < 8) {
+                        alert('Password must be at least 8 characters');
                         return;
                     }
 
-                    // Simulated registration logic
-                    console.log('Registration attempt:', {
-                        username: this.username,
-                        email: this.email
-                    });
-
-                    // Placeholder for actual registration logic
-                    fetch('register_process.php', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/json',
-                        },
-                        body: JSON.stringify({
-                            username: this.username,
-                            email: this.email,
-                            password: this.password
-                        })
-                    })
-                    .then(response => response.json())
-                    .then(data => {
-                        if (data.success) {
-                            window.location.href = 'login.php';
-                        } else {
-                            alert(data.message || 'Registration failed');
-                        }
-                    })
-                    .catch(error => {
-                        console.error('Registration error:', error);
-                        alert('An error occurred during registration');
-                    });
+                    // If all validations pass, submit the form
+                    document.querySelector('form').submit();
                 }
-            }
+            };
         }
     </script>
 </body>
