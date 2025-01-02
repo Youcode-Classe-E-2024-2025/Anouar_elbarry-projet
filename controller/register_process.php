@@ -1,5 +1,6 @@
 <?php
 require_once 'classes/user.php';
+session_start();
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Validate input
@@ -11,7 +12,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
         // Create user instance
         $user = new User($username, $email, $password);
-        // die("dddddddddd");
+        $_SESSION['username'] = $username;
+        $_SESSION['email'] = $email;
         // Attempt registration
         $result = $user->regester($username, $email, $password);
         
