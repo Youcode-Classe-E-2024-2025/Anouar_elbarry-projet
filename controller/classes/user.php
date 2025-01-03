@@ -1,10 +1,10 @@
 <?php
 require_once "configDB.php";
+require_once "project.php";
 class User {
     //Attributes
 
     // roles
-    const ROLE_GEST = 'GEST';
     const ROLE_TEAM_MEMBER = 'TEAM_MEMBER';
     const ROLE_PROJECT_MANAGER = 'PROJECT_MANAGER';  
     
@@ -14,10 +14,11 @@ class User {
     private string $email;
     private string $password;
     private string $role;
+    private Project $project;
     private array $projects = [];
     private Database $db;
     //Methodes
-    public function __construct($username, $email, $password, $role = self::ROLE_GEST) {
+    public function __construct($username, $email, $password, $role = self::ROLE_TEAM_MEMBER) {
         $this->db = new Database(); 
         $this->username = $username;
         $this->email = $email;
@@ -27,7 +28,7 @@ class User {
     
     public function setRole($role){
         // role validation
-        if(in_array($role,[self::ROLE_GEST,self::ROLE_TEAM_MEMBER,self::ROLE_PROJECT_MANAGER])){
+        if(in_array($role,[self::ROLE_TEAM_MEMBER,self::ROLE_PROJECT_MANAGER])){
             $this->role = $role;
 
             // Only attempt to update role in database if user has an ID
@@ -54,7 +55,7 @@ class User {
                 "username"=> $username,
                 "email"=> $email,
                 "password"=> $hashedPassword,
-                "role"=> self::ROLE_GEST,
+                "role"=> self::ROLE_TEAM_MEMBER,
             ]);
             
             // Return the last inserted ID
@@ -82,7 +83,27 @@ class User {
     
     public function updateProfile($name, $email){
     }
-    public function creatproject($name, $email){
+    public function creatproject($name, $description, $isPublic = true){
+        // Ensure the user is a project manager or has appropriate permissions
+        if ($this->role !== self::ROLE_PROJECT_MANAGER) {
+            throw new Exception("Only project managers can create projects");
+        }
+
+        // Ensure the user is logged in (has an ID)
+        if ($this->id <= 0) {
+            throw new Exception("User must be logged in to create a project");
+        }
+
+        // Create a new project
+        $project = new Project($name, $description, $isPublic, $this->id);
+        $projectId = $project->creat($name, $description, $isPublic, $this->id);
+
+        // Optionally, add the project to the user's projects array
+        if ($projectId) {
+            $this->projects[] = $project;
+        }
+
+        return $projectId;
     }
     // handle password
     private function setPassword( $password ){
