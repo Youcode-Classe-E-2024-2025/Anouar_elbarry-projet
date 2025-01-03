@@ -6,10 +6,10 @@ class Project {
     private string $description;
     private bool $isPublic;
     private string $createdAt;
-    private string $creator;
+    private int $creator;
 
     // Methodes
-    
+
     public function __construct($name, $description, $isPublic,$creator){
         $this->name = $name;
         $this->description = $description;
@@ -18,15 +18,30 @@ class Project {
     }
     public function getId(){}
     public function creat($name, $description, $isPublic, $creator){
-        $this->name = $name;
-        $this->description = $description;
-        $this->isPublic = $isPublic;
-        $this->creator = $creator;
+        $db = new Database();
+        $conn = $db->getConnection();
+
+        $query = "INSERT INTO projects (name, description, isPublic, creator_id) VALUES (:name, :description, :isPublic, :creator)";
+        $stmt = $conn->prepare($query);
+        
+        try {
+            $stmt->execute([
+                'name' => $name,
+                'description' => $description,
+                'isPublic' => $isPublic ? 1 : 0,
+                'creator' => $creator
+            ]);
+            
+            // Return the last inserted ID
+            return $conn->lastInsertId();
+        } catch (PDOException $e) {
+            // Log the error or handle it appropriately
+            error_log("Project creation error: " . $e->getMessage());
+            return false;
+        }
     }
     public function update($name, $description, $isPublic){
-        $this->name = $name;
-        $this->description = $description;
-        $this->isPublic = $isPublic;
+      
     }
     public function delet(){}
     public function addMember(){}
