@@ -113,4 +113,23 @@ class User {
     public function verifyPassword($inputPassword){
        return password_verify($inputPassword , $this->password);
     }   
+    public static function getUsers(){
+        $db = new Database();
+        $conn = $db->getConnection();
+        $query = "SELECT * FROM users";
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    }   
+    public static function getUsername($email){
+        $db = new Database();
+        $conn = $db->getConnection();
+        $query = "SELECT name FROM users WHERE email= :email";
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam(":email", $email, PDO::PARAM_STR);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+    }   
 }
