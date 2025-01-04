@@ -1,4 +1,5 @@
 <?php 
+require_once "configDB.php";
 class Project {
     // Attributes
     private int $id;
@@ -7,10 +8,12 @@ class Project {
     private bool $isPublic;
     private string $createdAt;
     private int $creator;
+    private Database $db;
 
     // Methodes
 
     public function __construct($name, $description, $isPublic,$creator){
+        $this->db = new Database();
         $this->name = $name;
         $this->description = $description;
         $this->isPublic = $isPublic;
@@ -46,4 +49,13 @@ class Project {
     public function delet(){}
     public function addMember(){}
     public function removeMember(){}
+    public function getprojects(){
+    $db = new Database();
+    $conn =  $this->$db->getConnection();
+    $query = "SELECT * FROM projects";
+    $stmt = $conn->prepare($query);
+    $stmt->execut();
+    $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $projects;
+    }
 }
