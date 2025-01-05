@@ -64,20 +64,6 @@ cd protask
    - Point your web server to the project's root directory
    - Ensure proper permissions are set
 
-## Project Structure
-
-```
-protask/
-├── controller/          # Controllers and business logic
-│   ├── classes/        # PHP classes
-│   └── ...
-├── view/               # View files
-│   ├── auth/          # Authentication pages
-│   └── ...
-├── database/          # Database schema and migrations
-└── assets/           # Static assets (CSS, JS, images)
-```
-
 ## UML 
 
 - [CLASS DIAGRAM](https://lucid.app/lucidchart/b54fc9dd-eda2-41ab-ad0b-fa50d95738ec/edit?viewport_loc=-4620%2C-1507%2C5657%2C2469%2C0_0&invitationId=inv_42ee7763-5de9-4d4c-8f75-cbd3c0ee038b)
