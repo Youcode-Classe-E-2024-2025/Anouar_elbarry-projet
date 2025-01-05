@@ -249,9 +249,9 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                     <?php 
                     foreach($userProjects as $project): 
                     ?>
-                    <a href="index.view.php?project_id=<?= $project['id'] ?>" class="block hover:transform hover:scale-105 transition-transform duration-200">
+                    <div class="block hover:transform hover:scale-105 transition-transform duration-200">
                         <div class="bg-white rounded-xl shadow-md p-6">
-                            <div class="flex justify-between items-start mb-4">
+                            <div class="flex justify-between items-center mb-4">
                                 <div>
                                     <h3 class="text-xl font-bold"><?= htmlspecialchars($project["name"]) ?></h3>
                                     <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
@@ -261,7 +261,7 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                                         $members = $user->getProjectMembers($project['id']);
                                         foreach($members as $member) {
                                             if($member['role'] == 'PROJECT_MANAGER') {
-                                                echo $member['username'];
+                                                echo htmlspecialchars($member['username']);
                                                 break;
                                             }
                                         }
@@ -269,7 +269,9 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                                     </p>
                                     <?php endif; ?>
                                 </div>
-                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">Active</span>
+                                <button onclick="showProjectDetails(<?= $project['id'] ?>)" class="text-gray-400 hover:text-gray-600">
+                                    <i class="fas fa-ellipsis-v"></i>
+                                </button>
                             </div>
                             <p class="text-gray-600 mb-4"><?= htmlspecialchars($project["description"]) ?></p>
                             
@@ -290,10 +292,10 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                                     $projectMembers = $user->getProjectMembers($project['id']);
                                     foreach(array_slice($projectMembers, 0, 3) as $member): 
                                     ?>
-                                    <img src="https://ui-avatars.com/api/?name=<?= $member['username'] ?>" 
-                                         alt="<?= $member['username'] ?>" 
+                                    <img src="https://ui-avatars.com/api/?name=<?= urlencode($member['username']) ?>" 
+                                         alt="<?= htmlspecialchars($member['username']) ?>" 
                                          class="w-8 h-8 rounded-full border-2 border-white"
-                                         title="<?= $member['username'] ?> (<?= $member['role'] ?>)">
+                                         title="<?= htmlspecialchars($member['username']) ?> (<?= htmlspecialchars($member['role']) ?>)">
                                     <?php endforeach; ?>
                                     <?php if(count($projectMembers) > 3): ?>
                                     <span class="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs">
@@ -304,20 +306,20 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
 
                                 <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                                 <div class="flex justify-end pt-2">
-                                    <button class="text-blue-500 hover:text-blue-600 text-sm">
+                                    <a href="index.view.php?project_id=<?= $project['id'] ?>" class="text-blue-500 hover:text-blue-600 text-sm">
                                         <i class="fas fa-cog mr-1"></i>Manage Project
-                                    </button>
+                                    </a>
                                 </div>
                                 <?php else: ?>
                                 <div class="flex justify-end pt-2">
-                                    <button class="text-blue-500 hover:text-blue-600 text-sm">
+                                    <a href="index.view.php?project_id=<?= $project['id'] ?>" class="text-blue-500 hover:text-blue-600 text-sm">
                                         <i class="fas fa-tasks mr-1"></i>View Tasks
-                                    </button>
+                                    </a>
                                 </div>
                                 <?php endif; ?>
                             </div>
                         </div>
-                    </a>
+                    </div>
                     <?php endforeach; ?>
                 </div>
             </section>
@@ -410,10 +412,147 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
         </div>
     </div>
 
+    <!-- Project Details Modal -->
+    <div id="projectDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
+        <div class="bg-white rounded-xl p-6 w-full max-w-2xl m-4">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-gray-800">Website Redesign Project</h2>
+                <button onclick="closeProjectModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="space-y-6">
+                <!-- Project Status -->
+                <div class="flex items-center space-x-4">
+                    <span class="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">Active</span>
+                    <span class="text-gray-600">
+                        <i class="fas fa-calendar mr-2"></i>Due: Jan 31, 2025
+                    </span>
+                </div>
+                
+                <!-- Project Description -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Description</h3>
+                    <p class="text-gray-600">
+                        Complete redesign of the company website with modern UI/UX principles. 
+                        Focus on improving user engagement and mobile responsiveness.
+                    </p>
+                </div>
+                
+                <!-- Project Progress -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-2">Progress</h3>
+                    <div class="w-full bg-gray-200 rounded-full h-2.5">
+                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: 65%"></div>
+                    </div>
+                    <div class="flex justify-between mt-2 text-sm text-gray-600">
+                        <span>10 Tasks</span>
+                        <span>6 Completed</span>
+                    </div>
+                </div>
+                
+                <!-- Team Members -->
+                <div>
+                    <h3 class="text-lg font-semibold mb-3">Team Members</h3>
+                    <div class="grid grid-cols-2 gap-4">
+                        <!-- Team Member 1 -->
+                        <div class="flex items-center space-x-3 p-2 rounded-lg bg-gray-50">
+                            <img src="https://ui-avatars.com/api/?name=John+Doe" 
+                                 alt="John Doe" 
+                                 class="w-10 h-10 rounded-full">
+                            <div>
+                                <div class="font-medium">John Doe</div>
+                                <div class="text-sm text-gray-500">Project Manager</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Team Member 2 -->
+                        <div class="flex items-center space-x-3 p-2 rounded-lg bg-gray-50">
+                            <img src="https://ui-avatars.com/api/?name=Sarah+Smith" 
+                                 alt="Sarah Smith" 
+                                 class="w-10 h-10 rounded-full">
+                            <div>
+                                <div class="font-medium">Sarah Smith</div>
+                                <div class="text-sm text-gray-500">Designer</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Team Member 3 -->
+                        <div class="flex items-center space-x-3 p-2 rounded-lg bg-gray-50">
+                            <img src="https://ui-avatars.com/api/?name=Mike+Johnson" 
+                                 alt="Mike Johnson" 
+                                 class="w-10 h-10 rounded-full">
+                            <div>
+                                <div class="font-medium">Mike Johnson</div>
+                                <div class="text-sm text-gray-500">Developer</div>
+                            </div>
+                        </div>
+                        
+                        <!-- Team Member 4 -->
+                        <div class="flex items-center space-x-3 p-2 rounded-lg bg-gray-50">
+                            <img src="https://ui-avatars.com/api/?name=Emily+Brown" 
+                                 alt="Emily Brown" 
+                                 class="w-10 h-10 rounded-full">
+                            <div>
+                                <div class="font-medium">Emily Brown</div>
+                                <div class="text-sm text-gray-500">Content Writer</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Action Buttons -->
+                <div class="flex justify-end space-x-4 pt-4 border-t">
+                    <button onclick="editProject(1)" class="px-4 py-2 text-blue-600 hover:text-blue-700">
+                        <i class="fas fa-edit mr-2"></i>Edit Project
+                    </button>
+                    <button onclick="deleteProject(1)" class="px-4 py-2 text-red-600 hover:text-red-700">
+                        <i class="fas fa-trash-alt mr-2"></i>Delete Project
+                    </button>
+                    <a href="index.view.php?project_id=1" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
+                        <i class="fas fa-tasks mr-2"></i>View Tasks
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showProjectDetails(projectId) {
+            // Just show the modal
+            const modal = document.getElementById('projectDetailsModal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeProjectModal() {
+            // Just hide the modal
+            const modal = document.getElementById('projectDetailsModal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        function deleteProject(projectId) {
+            if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+                window.location.href = '../controller/delete_project.php?project_id=' + projectId;
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('projectDetailsModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('projectDetailsModal')) {
+                closeProjectModal();
+            }
+        });
+    </script>
+
     <!-- Include your modal for new project creation -->
     <?php include 'components/new-project-modal.php'; ?>
 
     <script>
+        let currentProjectId = null;
+
         // Show/Hide sections based on navigation
         document.querySelectorAll('nav a').forEach(link => {
             link.addEventListener('click', (e) => {
@@ -452,6 +591,13 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                 modal.classList.add('hidden');
             }
         }
+
+        // Close modal when clicking outside
+        document.getElementById('projectDetailsModal').addEventListener('click', (e) => {
+            if (e.target === document.getElementById('projectDetailsModal')) {
+                closeProjectModal();
+            }
+        });
 
         // Charts
         // Project Progress Chart
@@ -556,7 +702,6 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                 }
             }
         });
-
     </script>
 </body>
 </html>

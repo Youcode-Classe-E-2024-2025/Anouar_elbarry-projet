@@ -11,9 +11,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'];
 
         // Create user instance
-        $user = new User($username, $email, $password);
-        $_SESSION['username'] = $username;
-        $_SESSION['email'] = $email;
+        $user = new User($username, $email);
         // Attempt registration
         $result = $user->regester($username, $email, $password);
         
@@ -23,7 +21,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit();
         } else {
             // Registration failed
-            header('Location: ../view/auth/register.php');
+            echo'MOCHKIL';
             exit();
         }
     } else {

@@ -48,10 +48,17 @@
             <div>
                 <button 
                     type="submit" 
-                    class="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 transition"
+                    class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600 transition-colors"
                 >
                     Login
                 </button>
+                <div class="text-center mt-4">
+                    <p class="text-gray-600">Don't have an account? 
+                        <a href="register.php" class="text-blue-500 hover:text-blue-600 font-semibold transition-colors">
+                            Register here
+                        </a>
+                    </p>
+                </div>
             </div>
         </form>
     </div>

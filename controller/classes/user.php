@@ -15,7 +15,6 @@ class User {
     private string $password;
     private string $role;
     private Project $project;
-    private array $projects = [];
     private Database $db;
     //Methodes
     public function __construct($username, $email, $password = null , $role = self::ROLE_TEAM_MEMBER) {
@@ -148,8 +147,7 @@ class User {
                     $query = "SELECT p.* 
                              FROM projects p 
                              JOIN team_members tm ON p.id = tm.project_id 
-                             WHERE tm.user_id = :user_id 
-                             ORDER BY p.created_at DESC";
+                             WHERE tm.user_id = :user_id";
                     $stmt = $conn->prepare($query);
                     $stmt->execute(['user_id' => $this->id]);
                     break;
@@ -239,6 +237,17 @@ class User {
                 $query = "SELECT * FROM users";
                 $stmt = $conn->prepare($query);
                 $stmt->execute();
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        
+    }   
+    public static function getTeamMembers(){
+                $db = new Database();
+                $conn = $db->getConnection();
+                $query = "SELECT * FROM users WHERE role = :role";
+                $stmt = $conn->prepare($query);
+                $stmt->execute(
+                    ["role" => self::ROLE_TEAM_MEMBER]
+                );
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
         
     }   

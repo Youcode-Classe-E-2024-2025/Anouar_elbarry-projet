@@ -4,35 +4,36 @@ require_once __DIR__ . "/classes/configDB.php";
 require_once __DIR__ . "/classes/user.php";
 require_once __DIR__ . "/classes/project.php";
 
-if (isset($_POST['creatProject'])) {
+if (isset($_POST['newProjectForm'])) {
     // Get form data
     $projectName = trim($_POST['project_name']);
     $projectDescription = trim($_POST['project_description']);
     $isPublic = isset($_POST['isPublic']) ? 1 : 0;
-    $dueDate = trim($_POST['dueDate']);
-    
-    $user = new User($_SESSION['username'], $_SESSION['email']);
-    // Get the creator's ID from session
+    $dueDate = $_POST['dueDate'];
     $creatorId = $_SESSION['userid'];
-    echo $_SESSION['userRole'];
-    if (!$creatorId) {
-       die('there is no id');
-    }
+
+    // Create user object
+    $user = new User($_SESSION['username'], $_SESSION['email']);
+    $user->setId($creatorId);
     
     try {
         // Create the project
         $projectId = $user->creatproject($projectName, $projectDescription, $isPublic, $creatorId, $dueDate);
         
         if ($projectId) {
-            // Handle team member assignments if any
+            // First assign the creator as a project manager
+            $user->assignProjectToUser($projectId, $creatorId, 'PROJECT_MANAGER');
+
+            // Then assign selected team members (only as TEAM_MEMBER)
             if (isset($_POST['member_roles']) && is_array($_POST['member_roles'])) {
                 foreach ($_POST['member_roles'] as $memberId => $role) {
                     if (!empty($role)) {
-                        $user->assignProjectToUser($projectId, $memberId, $role);
+                        // Force role to be TEAM_MEMBER regardless of what was selected
+                        $user->assignProjectToUser($projectId, $memberId, 'TEAM_MEMBER');
                     }
                 }
             }
-            $_SESSION["projectCreated"] = "The project was created successfully";
+            $_SESSION["success"] = "Project created successfully";
         } else {
             $_SESSION["error"] = "Failed to create the project";
         }
@@ -40,7 +41,7 @@ if (isset($_POST['creatProject'])) {
         $_SESSION["error"] = "Error: " . $e->getMessage();
     }
     
-    header("Location: ../view/project-manager-dashboard.php");
+    header("Location: ../view/dashboard.php");
     exit();
 }
 

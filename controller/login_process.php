@@ -10,7 +10,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
       
          // Create user instance
         
-         
 
 $db = new Database();
 $db->getConnection();
@@ -22,8 +21,9 @@ $db->getConnection();
             $_SESSION['username'] = $user_Data["username"];
             $_SESSION['userid'] = $user_Data["id"];
             $_SESSION['userRole'] = $user_Data["role"];
+            $_SESSION['email'] = $user_Data["email"]; 
           
-            header('Location: ../view/project-manager-dashboard.php');
+            header('Location: ../view/dashboard.php');
         }
         else{
            
