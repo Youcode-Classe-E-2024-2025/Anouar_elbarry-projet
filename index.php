@@ -1,12 +1,12 @@
-<?php
-// require_once 'view/project-manager-dashboard.php';
-// require_once 'view/team-management.php';
-// require_once 'view/project-reports.php';
-// require_once 'view/user-dashboard.php';
-// require_once 'view/project-create.php';
-// require_once 'view/error/404.php';
-// require_once 'view/auth/login.php';
-require_once 'controller/classes/user.php';
-require_once 'view/auth/register.php';
-// require_once 'view/task-create.php';
-?>
+<?php 
+session_start();
+
+// If not logged in, redirect to login page
+if(!isset($_SESSION["username"])) {
+    header("location: view/home.php");
+    exit();
+}
+
+// If logged in, redirect to dashboard
+header("location: view/dashboard.php");
+exit();
