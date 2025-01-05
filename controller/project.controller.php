@@ -9,6 +9,7 @@ if (isset($_POST['creatProject'])) {
     $projectName = trim($_POST['project_name']);
     $projectDescription = trim($_POST['project_description']);
     $isPublic = isset($_POST['isPublic']) ? 1 : 0;
+    $dueDate = trim($_POST['dueDate']);
     
     $user = new User($_SESSION['username'], $_SESSION['email']);
     // Get the creator's ID from session
@@ -21,7 +22,7 @@ if (isset($_POST['creatProject'])) {
     try {
         
         // Create the project in database
-        $projectId = $user->creatproject($projectName, $projectDescription, $isPublic ,$creatorId);
+        $projectId = $user->creatproject($projectName, $projectDescription, $isPublic ,$creatorId,$dueDate);
         
         if ($projectId) {
             die('sf mcha');
