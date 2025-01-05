@@ -13,10 +13,10 @@ if (isset($_POST['creatProject'])) {
     
     $user = new User($_SESSION['username'], $_SESSION['email']);
     // Get the creator's ID from session
-    $creatorId = $_SESSION['id'];
-    
+    $creatorId = $_SESSION['userid'];
+    echo $_SESSION['userRole'];
     if (!$creatorId) {
-       die('makaynch l id');
+       die('there is no id');
     }
     
     try {
@@ -25,7 +25,7 @@ if (isset($_POST['creatProject'])) {
         $projectId = $user->creatproject($projectName, $projectDescription, $isPublic ,$creatorId,$dueDate);
         
         if ($projectId) {
-            die('sf mcha');
+            $_SESSION["projectCreated"] = "the project created successfuly";
         } else {
             die('malgach l id dial lprojct');
         }
