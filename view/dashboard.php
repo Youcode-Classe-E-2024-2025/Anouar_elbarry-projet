@@ -55,7 +55,7 @@ $user->setId($_SESSION['userid']);
             <div class="mb-10 text-center">
                 <img src="https://ui-avatars.com/api/?name=<?= $_SESSION['username'] ?>&background=0D8ABC&color=fff" 
                      alt="Profile" class="mx-auto w-24 h-24 rounded-full object-cover">
-                <h2 class="mt-4 text-xl font-bold text-gray-800"><?=$_SESSION['username'] ?></h2>
+                <h2 class="mt-4 text-xl font-bold"><?=$_SESSION['username'] ?></h2>
                 <p class="text-gray-500"><?=$_SESSION['email'] ?></p>
                 <span class="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
                     <?=$_SESSION['userRole'] ?>
@@ -74,18 +74,25 @@ $user->setId($_SESSION['userid']);
                             <i class="fas fa-project-diagram mr-3"></i>My Projects
                         </a>
                     </li>
+                    <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
                     <li>
                         <a href="#my-tasks" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
                             <i class="fas fa-tasks mr-3"></i>My Tasks
                         </a>
                     </li>
+                    <?php endif; ?>
                     <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                     <li>
-                        <a href="#manage-projects" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
-                            <i class="fas fa-cog mr-3"></i>Manage Projects
+                        <a href="#team-management" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+                            <i class="fas fa-users-cog mr-3"></i>Team Management
                         </a>
                     </li>
-                    <?php endif; ?>
+                    <li>
+                        <a href="#task-management" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+                            <i class="fas fa-clipboard-list mr-3"></i>Task Management
+                        </a>
+                    </li>
+                    
                     <li>
                         <a href="#project-requests" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
                             <i class="fas fa-envelope mr-3"></i>Project Requests
@@ -93,7 +100,13 @@ $user->setId($_SESSION['userid']);
                         </a>
                     </li>
                     <li>
-                        <a href="../controller/logout.php" class="flex items-center p-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition">
+                        <a href="#reports-section" id="Rapports" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+                            <i class="fas fa-chart-bar mr-3"></i>Reports
+                        </a>
+                    </li>
+                    <?php endif; ?>
+                    <li>
+                        <a href="controller/logout.php" class="flex items-center p-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition">
                             <i class="fas fa-sign-out-alt mr-3"></i>Logout
                         </a>
                     </li>
@@ -132,6 +145,41 @@ $user->setId($_SESSION['userid']);
                         </div>
                     </div>
                 </div>
+                <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-green-100 rounded-full">
+                            <i class="fas fa-users text-green-500"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-gray-500">Team Members</h3>
+                            <p class="text-2xl font-semibold">15</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-yellow-100 rounded-full">
+                            <i class="fas fa-clipboard-check text-yellow-500"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-gray-500">Completed Tasks</h3>
+                            <p class="text-2xl font-semibold">45</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex items-center">
+                        <div class="p-3 bg-purple-100 rounded-full">
+                            <i class="fas fa-clock text-purple-500"></i>
+                        </div>
+                        <div class="ml-4">
+                            <h3 class="text-gray-500">Pending Requests</h3>
+                            <p class="text-2xl font-semibold">3</p>
+                        </div>
+                    </div>
+                </div>
+                <?php else: ?>
                 <div class="bg-white rounded-xl shadow-md p-6">
                     <div class="flex items-center">
                         <div class="p-3 bg-green-100 rounded-full">
@@ -139,7 +187,7 @@ $user->setId($_SESSION['userid']);
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">My Tasks</h3>
-                            <p class="text-2xl font-semibold">25</p>
+                            <p class="text-2xl font-semibold">8</p>
                         </div>
                     </div>
                 </div>
@@ -150,39 +198,82 @@ $user->setId($_SESSION['userid']);
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">Pending Tasks</h3>
-                            <p class="text-2xl font-semibold">8</p>
+                            <p class="text-2xl font-semibold">3</p>
                         </div>
                     </div>
                 </div>
                 <div class="bg-white rounded-xl shadow-md p-6">
                     <div class="flex items-center">
                         <div class="p-3 bg-purple-100 rounded-full">
-                            <i class="fas fa-users text-purple-500"></i>
+                            <i class="fas fa-check-circle text-purple-500"></i>
                         </div>
                         <div class="ml-4">
-                            <h3 class="text-gray-500">Team Members</h3>
-                            <p class="text-2xl font-semibold">15</p>
+                            <h3 class="text-gray-500">Completed Tasks</h3>
+                            <p class="text-2xl font-semibold">5</p>
                         </div>
                     </div>
                 </div>
+                <?php endif; ?>
             </div>
 
             <!-- Projects Section -->
             <section id="my-projects" class="mb-8">
-                <h2 class="text-2xl font-semibold mb-6">My Projects</h2>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold">
+                        <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
+                            My Projects
+                        <?php else: ?>
+                            Projects I'm Working On
+                        <?php endif; ?>
+                    </h2>
+                    <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
+                    <button id="newProjectBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-plus mr-2"></i>New Project
+                    </button>
+                    <?php endif; ?>
+                </div>
+
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <?php 
                     $userProjects = $user->getUserProjects();
                     foreach($userProjects as $project): 
                     ?>
                     <div class="bg-white rounded-xl shadow-md p-6">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-xl font-bold"><?= $project["name"] ?></h3>
+                        <div class="flex justify-between items-start mb-4">
+                            <div>
+                                <h3 class="text-xl font-bold"><?= $project["name"] ?></h3>
+                                <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
+                                <p class="text-sm text-gray-500">
+                                    Project Manager: 
+                                    <?php 
+                                    $members = $user->getProjectMembers($project['id']);
+                                    foreach($members as $member) {
+                                        if($member['role'] == 'PROJECT_MANAGER') {
+                                            echo $member['username'];
+                                            break;
+                                        }
+                                    }
+                                    ?>
+                                </p>
+                                <?php endif; ?>
+                            </div>
                             <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">Active</span>
                         </div>
                         <p class="text-gray-600 mb-4"><?= $project["description"] ?></p>
-                        <div class="flex items-center justify-between">
-                            <div class="flex -space-x-2">
+                        
+                        <!-- Project Details -->
+                        <div class="space-y-3">
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-calendar mr-2"></i>
+                                <span>Due: <?= date('M j, Y', strtotime($project["dueDate"])) ?></span>
+                            </div>
+                            
+                            <div class="flex items-center text-sm text-gray-500">
+                                <i class="fas fa-users mr-2"></i>
+                                <span>Team Members:</span>
+                            </div>
+                            
+                            <div class="flex items-center -space-x-2">
                                 <?php 
                                 $projectMembers = $user->getProjectMembers($project['id']);
                                 foreach(array_slice($projectMembers, 0, 3) as $member): 
@@ -190,7 +281,7 @@ $user->setId($_SESSION['userid']);
                                 <img src="https://ui-avatars.com/api/?name=<?= $member['username'] ?>" 
                                      alt="<?= $member['username'] ?>" 
                                      class="w-8 h-8 rounded-full border-2 border-white"
-                                     title="<?= $member['username'] ?>">
+                                     title="<?= $member['username'] ?> (<?= $member['role'] ?>)">
                                 <?php endforeach; ?>
                                 <?php if(count($projectMembers) > 3): ?>
                                 <span class="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs">
@@ -198,14 +289,28 @@ $user->setId($_SESSION['userid']);
                                 </span>
                                 <?php endif; ?>
                             </div>
-                            <span class="text-sm text-gray-500">Due: <?= $project["dueDate"] ?></span>
+
+                            <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
+                            <div class="flex justify-end pt-2">
+                                <button class="text-blue-500 hover:text-blue-600 text-sm">
+                                    <i class="fas fa-cog mr-1"></i>Manage Project
+                                </button>
+                            </div>
+                            <?php else: ?>
+                            <div class="flex justify-end pt-2">
+                                <button class="text-blue-500 hover:text-blue-600 text-sm">
+                                    <i class="fas fa-tasks mr-1"></i>View Tasks
+                                </button>
+                            </div>
+                            <?php endif; ?>
                         </div>
                     </div>
                     <?php endforeach; ?>
                 </div>
             </section>
 
-            <!-- Tasks Section -->
+            <!-- Tasks Section - Only visible for team members -->
+            <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
             <section id="my-tasks" class="mb-8">
                 <h2 class="text-2xl font-semibold mb-6">My Tasks</h2>
                 <div class="bg-white rounded-xl shadow-md overflow-hidden">
@@ -220,33 +325,58 @@ $user->setId($_SESSION['userid']);
                             </tr>
                         </thead>
                         <tbody class="bg-white divide-y divide-gray-200">
-                            <!-- Sample task rows - Replace with actual data -->
-                            <tr>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm font-medium text-gray-900">Design Homepage</div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-500">Website Redesign</div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <div class="text-sm text-gray-500">2025-01-10</div>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                                        In Progress
-                                    </span>
-                                </td>
-                                <td class="px-6 py-4">
-                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-red-100 text-red-800">
-                                        High
-                                    </span>
-                                </td>
-                            </tr>
+                            <!-- Task rows will be populated here -->
                         </tbody>
                     </table>
                 </div>
             </section>
+            <?php endif; ?>
 
+            <!-- Task Management Section - Only visible for project managers -->
+            <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
+            <section id="task-management" class="mb-8">
+                <h2 class="text-2xl font-semibold mb-6">Task Management</h2>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-lg font-semibold">Project Tasks Overview</h3>
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                            <i class="fas fa-plus mr-2"></i>Create Task
+                        </button>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="border rounded-lg p-4">
+                            <h4 class="font-semibold mb-3">To Do</h4>
+                            <div class="space-y-3">
+                                <!-- Task cards will be populated here -->
+                            </div>
+                        </div>
+                        <div class="border rounded-lg p-4">
+                            <h4 class="font-semibold mb-3">In Progress</h4>
+                            <div class="space-y-3">
+                                <!-- Task cards will be populated here -->
+                            </div>
+                        </div>
+                        <div class="border rounded-lg p-4">
+                            <h4 class="font-semibold mb-3">Completed</h4>
+                            <div class="space-y-3">
+                                <!-- Task cards will be populated here -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Team Management Section - Only visible for project managers -->
+            <section id="team-management" class="mb-8">
+                <h2 class="text-2xl font-semibold mb-6">Team Management</h2>
+                <div class="bg-white rounded-xl shadow-md p-6">
+                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <!-- Team member cards will be populated here -->
+                    </div>
+                </div>
+            </section>
+            <?php endif; ?>
+            <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
             <!-- Project Requests Section -->
             <section id="project-requests" class="mb-8">
                 <h2 class="text-2xl font-semibold mb-6">Project Requests</h2>
@@ -268,6 +398,46 @@ $user->setId($_SESSION['userid']);
                     </div>
                 </div>
             </section>
+
+             <!-- Reports Section -->
+             <section id="reports-section" class="mb-8">
+                <header class="flex justify-between items-center mb-8">
+                    <h1 class="text-3xl font-bold text-gray-800">Performance Reports</h1>
+                    <div class="flex items-center space-x-4">
+                        <div class="relative">
+                            <select class="bg-white border rounded-lg px-4 py-2">
+                                <option>Last Quarter</option>
+                                <option>Last 6 Months</option>
+                                <option>Full Year</option>
+                            </select>
+                        </div>
+                        <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                            <i class="fas fa-download mr-2"></i>Export
+                        </button>
+                    </div>
+                </header>
+                <!-- Charts Section -->
+                <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    <!-- Project Progress Chart -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4">Project Progress</h2>
+                        <canvas id="projectProgressChart" width="400" height="300"></canvas>
+                    </div>
+
+                    <!-- Team Performance Chart -->
+                    <div class="bg-white rounded-xl shadow-md p-6">
+                        <h2 class="text-xl font-semibold mb-4">Team Performance</h2>
+                        <canvas id="teamPerformanceChart" width="400" height="300"></canvas>
+                    </div>
+
+                    <!-- Task Distribution Chart -->
+                    <div class="bg-white rounded-xl shadow-md p-6 col-span-full">
+                        <h2 class="text-xl font-semibold mb-4">Task Distribution</h2>
+                        <canvas id="taskDistributionChart" width="800" height="300"></canvas>
+                    </div>
+                </div>
+            </section>
+            <?php endif ?>
         </div>
     </div>
 
@@ -306,6 +476,123 @@ $user->setId($_SESSION['userid']);
                 modal.classList.add('hidden');
             }
         }
+
+
+        //   // Toggle between Dashboard and Reports
+        //   document.getElementById('Rapports').addEventListener('click', () => {
+        //     document.getElementById('dashboard-section').classList.add('hidden');
+        //     document.getElementById('reports-section').classList.remove('hidden');
+        // });
+
+        // document.getElementById('dashboard-link').addEventListener('click', () => {
+        //     document.getElementById('reports-section').classList.add('hidden');
+        //     document.getElementById('dashboard-section').classList.remove('hidden');
+        // });
+
+        // Charts
+        // Project Progress Chart
+        const projectProgressCtx = document.getElementById('projectProgressChart').getContext('2d');
+        new Chart(projectProgressCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Project Management', 'Mobile App', 'Website', 'CRM', 'Marketing'],
+                datasets: [{
+                    label: 'Progress (%)',
+                    data: [65, 40, 25, 80, 55],
+                    backgroundColor: [
+                        'rgba(54, 162, 235, 0.6)',
+                        'rgba(255, 206, 86, 0.6)',
+                        'rgba(255, 99, 132, 0.6)',
+                        'rgba(75, 192, 192, 0.6)',
+                        'rgba(153, 102, 255, 0.6)'
+                    ],
+                    borderColor: [
+                        'rgba(54, 162, 235, 1)',
+                        'rgba(255, 206, 86, 1)',
+                        'rgba(255, 99, 132, 1)',
+                        'rgba(75, 192, 192, 1)',
+                        'rgba(153, 102, 255, 1)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Team Performance Chart
+        const teamPerformanceCtx = document.getElementById('teamPerformanceChart').getContext('2d');
+        new Chart(teamPerformanceCtx, {
+            type: 'radar',
+            data: {
+                labels: ['Marie', 'Pierre', 'Jean', 'Sophie', 'Emma'],
+                datasets: [{
+                    label: 'Performance',
+                    data: [85, 75, 65, 90, 70],
+                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                    borderColor: 'rgba(54, 162, 235, 1)',
+                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                    pointBorderColor: '#fff',
+                    pointHoverBackgroundColor: '#fff',
+                    pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
+                }]
+            },
+            options: {
+                responsive: true,
+                scale: {
+                    r: {
+                        beginAtZero: true,
+                        max: 100
+                    }
+                }
+            }
+        });
+
+        // Task Distribution Chart
+        const taskDistributionCtx = document.getElementById('taskDistributionChart').getContext('2d');
+        new Chart(taskDistributionCtx, {
+            type: 'line',
+            data: {
+                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                datasets: [
+                    {
+                        label: 'Completed Tasks',
+                        data: [12, 19, 3, 5, 2, 3],
+                        borderColor: 'rgb(75, 192, 192)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Ongoing Tasks',
+                        data: [2, 3, 20, 5, 1, 4],
+                        borderColor: 'rgb(255, 205, 86)',
+                        tension: 0.1
+                    },
+                    {
+                        label: 'Delayed Tasks',
+                        data: [1, 2, 1, 3, 0, 2],
+                        borderColor: 'rgb(255, 99, 132)',
+                        tension: 0.1
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                plugins: {
+                    title: {
+                        display: true,
+                        text: 'Task Distribution by Month'
+                    }
+                }
+            }
+        });
+
     </script>
 </body>
 </html>
