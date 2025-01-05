@@ -18,11 +18,13 @@ class User {
     private array $projects = [];
     private Database $db;
     //Methodes
-    public function __construct($username, $email, $password, $role = self::ROLE_TEAM_MEMBER) {
+    public function __construct($username, $email, $password = null , $role = self::ROLE_TEAM_MEMBER) {
         $this->db = new Database(); 
         $this->username = $username;
         $this->email = $email;
-        $this->setPassword($password);
+        if ($password !== null) {
+            $this->setPassword($password);
+        }
         $this->role = $role;
     }
     
@@ -38,6 +40,7 @@ class User {
                 $stmt = $conn->prepare($sql);
                 $stmt->execute(['role' => $role, 'id' => $this->id]);
             }
+            else{echo $this->id;}
         }
     }
 
@@ -46,7 +49,7 @@ class User {
     }
     public function regester($username, $email, $password){
         $conn = $this->db->getConnection();
-        $query = "INSERT INTO users (username, email, usarPassword, role) VALUES (:username, :email, :password, :role)";
+        $query = "INSERT INTO users (username, email, userPassword) VALUES (:username, :email, :password)";
         $stmt = $conn->prepare($query);
         $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
         
@@ -54,12 +57,12 @@ class User {
             $stmt->execute([
                 "username"=> $username,
                 "email"=> $email,
-                "password"=> $hashedPassword,
-                "role"=> self::ROLE_TEAM_MEMBER,
+                "password"=> $hashedPassword
             ]);
             
             // Return the last inserted ID
-            return $conn->lastInsertId();
+            $this->id = (int)$conn->lastInsertId(); // Cast to int and set the ID
+            return true;
         } catch (PDOException $e) {
             // Log the error or handle it appropriately
             error_log("Registration error: " . $e->getMessage());
@@ -73,37 +76,44 @@ class User {
         $stmt = $conn->prepare($query);
         $stmt->execute(["email"=> $email]);
         $user = $stmt->fetch(PDO::FETCH_ASSOC);
-         if($user && password_verify($password, $user["usarPassword"])){
-           return true;
-         }
-         else {
-            return false;
-         }
+
+        if($user && password_verify($password, $user["userPassword"])){
+        // Create and return a new User instance with the ID set
+        $newUser = new User($user['username'], $user['email']);
+        $newUser->setId((int)$user['id']);
+        return $newUser;
+    }
+    return false;
     }
     
     public function updateProfile($name, $email){
     }
-    public function creatproject($name, $description, $isPublic = true){
-        // Ensure the user is a project manager or has appropriate permissions
-        if ($this->role !== self::ROLE_PROJECT_MANAGER) {
-            throw new Exception("Only project managers can create projects");
-        }
+    public function creatproject($name, $description, $isPublic , $creatorId, $dueDate){
+        
 
-        // Ensure the user is logged in (has an ID)
+        // Set user as project manager when creating their first project
         if ($this->id <= 0) {
-            throw new Exception("User must be logged in to create a project");
+            $this->id = $creatorId; // Ensure the ID is set before changing role
         }
 
-        // Create a new project
-        $project = new Project($name, $description, $isPublic, $this->id);
-        $projectId = $project->creat($name, $description, $isPublic, $this->id);
-
-        // Optionally, add the project to the user's projects array
-        if ($projectId) {
-            $this->projects[] = $project;
+        $this->setRole(self::ROLE_PROJECT_MANAGER);
+        $conn = $this->db->getConnection();
+        $query = "INSERT INTO projects (name, description, isPublic, creator_id,dueDate) VALUES (:name, :description, :isPublic, :creator_id,:dueDate)";
+        $stmt = $conn->prepare($query);
+        
+        try {
+            $stmt->execute([
+                'name' => $name,
+                'description' => $description,
+                'isPublic' => $isPublic,
+                'creator_id' => $creatorId,
+                'dueDate' => $dueDate
+            ]);
+            return $conn->lastInsertId();
+        } catch (PDOException $e) {
+            // Handle error appropriately
+            return false;
         }
-
-        return $projectId;
     }
     // handle password
     private function setPassword( $password ){
@@ -122,14 +132,28 @@ class User {
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
 
     }   
-    public static function getUsername($email){
+    public static function getUserData($email){
         $db = new Database();
         $conn = $db->getConnection();
-        $query = "SELECT name FROM users WHERE email= :email";
+        $query = "SELECT * FROM users WHERE email= :email";
         $stmt = $conn->prepare($query);
         $stmt->bindParam(":email", $email, PDO::PARAM_STR);
         $stmt->execute();
-        return $stmt->fetchAll(PDO::FETCH_ASSOC);
-
+        $result = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $result;
     }   
+    public function getUserProjects(){
+        $conn = $this->db->getConnection();
+        $query = "SELECT * FROM projects WHERE creator_id = :id";
+        $stmt = $conn->prepare($query);
+        $stmt->execute(["id"=> $this->id]);
+        $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $projects;
+        }
+    public function getId(){
+        return $this->id;
+        }
+    public function setId($id){
+         $this->id=$id;
+        }
 }
