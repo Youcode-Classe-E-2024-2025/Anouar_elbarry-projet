@@ -10,8 +10,25 @@ if (!isset($_SESSION['userid'])) {
     exit();
 }
 
+// Initialize user object
 $user = new User($_SESSION['username'], $_SESSION['email']);
 $user->setId($_SESSION['userid']);
+
+// Get user projects once and store the count
+$userProjects = $user->getUserProjects();
+$uniqueTeamMembers = [];
+
+foreach ($userProjects as $project) {
+    $projectMembers = $user->getProjectMembers($project['id']);
+    foreach ($projectMembers as $member) {
+        // Use member ID as key to ensure uniqueness
+        $uniqueTeamMembers[$member['id']] = $member;
+    }
+}
+
+$teamcount = count($uniqueTeamMembers);
+
+$projectCount = is_array($userProjects) ? count($userProjects) : 0;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -76,7 +93,7 @@ $user->setId($_SESSION['userid']);
                     </li>
                     <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
                     <li>
-                        <a href="#my-tasks" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+                        <a href="index.view.php" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
                             <i class="fas fa-tasks mr-3"></i>My Tasks
                         </a>
                     </li>
@@ -85,11 +102,6 @@ $user->setId($_SESSION['userid']);
                     <li>
                         <a href="#team-management" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
                             <i class="fas fa-users-cog mr-3"></i>Team Management
-                        </a>
-                    </li>
-                    <li>
-                        <a href="#task-management" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
-                            <i class="fas fa-clipboard-list mr-3"></i>Task Management
                         </a>
                     </li>
                     
@@ -106,7 +118,7 @@ $user->setId($_SESSION['userid']);
                     </li>
                     <?php endif; ?>
                     <li>
-                        <a href="controller/logout.php" class="flex items-center p-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition">
+                        <a href="../controller/logout.php" class="flex items-center p-3 text-gray-700 hover:bg-red-50 hover:text-red-600 rounded-lg transition">
                             <i class="fas fa-sign-out-alt mr-3"></i>Logout
                         </a>
                     </li>
@@ -141,7 +153,7 @@ $user->setId($_SESSION['userid']);
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">Active Projects</h3>
-                            <p class="text-2xl font-semibold">12</p>
+                            <p class="text-2xl font-semibold"><?= $projectCount ?></p>
                         </div>
                     </div>
                 </div>
@@ -153,7 +165,7 @@ $user->setId($_SESSION['userid']);
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">Team Members</h3>
-                            <p class="text-2xl font-semibold">15</p>
+                            <p class="text-2xl font-semibold"><?= $teamcount ?></p>
                         </div>
                     </div>
                 </div>
@@ -227,7 +239,7 @@ $user->setId($_SESSION['userid']);
                         <?php endif; ?>
                     </h2>
                     <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
-                    <button id="newProjectBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
+                    <button id="newProjectBtn2" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
                         <i class="fas fa-plus mr-2"></i>New Project
                     </button>
                     <?php endif; ?>
@@ -235,76 +247,77 @@ $user->setId($_SESSION['userid']);
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <?php 
-                    $userProjects = $user->getUserProjects();
                     foreach($userProjects as $project): 
                     ?>
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="text-xl font-bold"><?= $project["name"] ?></h3>
-                                <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
-                                <p class="text-sm text-gray-500">
-                                    Project Manager: 
-                                    <?php 
-                                    $members = $user->getProjectMembers($project['id']);
-                                    foreach($members as $member) {
-                                        if($member['role'] == 'PROJECT_MANAGER') {
-                                            echo $member['username'];
-                                            break;
+                    <a href="index.view.php?project_id=<?= $project['id'] ?>" class="block hover:transform hover:scale-105 transition-transform duration-200">
+                        <div class="bg-white rounded-xl shadow-md p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-xl font-bold"><?= htmlspecialchars($project["name"]) ?></h3>
+                                    <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
+                                    <p class="text-sm text-gray-500">
+                                        Project Manager: 
+                                        <?php 
+                                        $members = $user->getProjectMembers($project['id']);
+                                        foreach($members as $member) {
+                                            if($member['role'] == 'PROJECT_MANAGER') {
+                                                echo $member['username'];
+                                                break;
+                                            }
                                         }
-                                    }
+                                        ?>
+                                    </p>
+                                    <?php endif; ?>
+                                </div>
+                                <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">Active</span>
+                            </div>
+                            <p class="text-gray-600 mb-4"><?= htmlspecialchars($project["description"]) ?></p>
+                            
+                            <!-- Project Details -->
+                            <div class="space-y-3">
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-calendar mr-2"></i>
+                                    <span>Due: <?= date('M j, Y', strtotime($project["dueDate"])) ?></span>
+                                </div>
+                                
+                                <div class="flex items-center text-sm text-gray-500">
+                                    <i class="fas fa-users mr-2"></i>
+                                    <span>Team Members:</span>
+                                </div>
+                                
+                                <div class="flex items-center -space-x-2">
+                                    <?php 
+                                    $projectMembers = $user->getProjectMembers($project['id']);
+                                    foreach(array_slice($projectMembers, 0, 3) as $member): 
                                     ?>
-                                </p>
-                                <?php endif; ?>
-                            </div>
-                            <span class="bg-green-100 text-green-600 px-2 py-1 rounded-full text-xs">Active</span>
-                        </div>
-                        <p class="text-gray-600 mb-4"><?= $project["description"] ?></p>
-                        
-                        <!-- Project Details -->
-                        <div class="space-y-3">
-                            <div class="flex items-center text-sm text-gray-500">
-                                <i class="fas fa-calendar mr-2"></i>
-                                <span>Due: <?= date('M j, Y', strtotime($project["dueDate"])) ?></span>
-                            </div>
-                            
-                            <div class="flex items-center text-sm text-gray-500">
-                                <i class="fas fa-users mr-2"></i>
-                                <span>Team Members:</span>
-                            </div>
-                            
-                            <div class="flex items-center -space-x-2">
-                                <?php 
-                                $projectMembers = $user->getProjectMembers($project['id']);
-                                foreach(array_slice($projectMembers, 0, 3) as $member): 
-                                ?>
-                                <img src="https://ui-avatars.com/api/?name=<?= $member['username'] ?>" 
-                                     alt="<?= $member['username'] ?>" 
-                                     class="w-8 h-8 rounded-full border-2 border-white"
-                                     title="<?= $member['username'] ?> (<?= $member['role'] ?>)">
-                                <?php endforeach; ?>
-                                <?php if(count($projectMembers) > 3): ?>
-                                <span class="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs">
-                                    +<?= count($projectMembers) - 3 ?>
-                                </span>
-                                <?php endif; ?>
-                            </div>
+                                    <img src="https://ui-avatars.com/api/?name=<?= $member['username'] ?>" 
+                                         alt="<?= $member['username'] ?>" 
+                                         class="w-8 h-8 rounded-full border-2 border-white"
+                                         title="<?= $member['username'] ?> (<?= $member['role'] ?>)">
+                                    <?php endforeach; ?>
+                                    <?php if(count($projectMembers) > 3): ?>
+                                    <span class="w-8 h-8 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs">
+                                        +<?= count($projectMembers) - 3 ?>
+                                    </span>
+                                    <?php endif; ?>
+                                </div>
 
-                            <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
-                            <div class="flex justify-end pt-2">
-                                <button class="text-blue-500 hover:text-blue-600 text-sm">
-                                    <i class="fas fa-cog mr-1"></i>Manage Project
-                                </button>
+                                <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
+                                <div class="flex justify-end pt-2">
+                                    <button class="text-blue-500 hover:text-blue-600 text-sm">
+                                        <i class="fas fa-cog mr-1"></i>Manage Project
+                                    </button>
+                                </div>
+                                <?php else: ?>
+                                <div class="flex justify-end pt-2">
+                                    <button class="text-blue-500 hover:text-blue-600 text-sm">
+                                        <i class="fas fa-tasks mr-1"></i>View Tasks
+                                    </button>
+                                </div>
+                                <?php endif; ?>
                             </div>
-                            <?php else: ?>
-                            <div class="flex justify-end pt-2">
-                                <button class="text-blue-500 hover:text-blue-600 text-sm">
-                                    <i class="fas fa-tasks mr-1"></i>View Tasks
-                                </button>
-                            </div>
-                            <?php endif; ?>
                         </div>
-                    </div>
+                    </a>
                     <?php endforeach; ?>
                 </div>
             </section>
@@ -332,50 +345,6 @@ $user->setId($_SESSION['userid']);
             </section>
             <?php endif; ?>
 
-            <!-- Task Management Section - Only visible for project managers -->
-            <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
-            <section id="task-management" class="mb-8">
-                <h2 class="text-2xl font-semibold mb-6">Task Management</h2>
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <div class="flex justify-between items-center mb-6">
-                        <h3 class="text-lg font-semibold">Project Tasks Overview</h3>
-                        <button class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
-                            <i class="fas fa-plus mr-2"></i>Create Task
-                        </button>
-                    </div>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        <div class="border rounded-lg p-4">
-                            <h4 class="font-semibold mb-3">To Do</h4>
-                            <div class="space-y-3">
-                                <!-- Task cards will be populated here -->
-                            </div>
-                        </div>
-                        <div class="border rounded-lg p-4">
-                            <h4 class="font-semibold mb-3">In Progress</h4>
-                            <div class="space-y-3">
-                                <!-- Task cards will be populated here -->
-                            </div>
-                        </div>
-                        <div class="border rounded-lg p-4">
-                            <h4 class="font-semibold mb-3">Completed</h4>
-                            <div class="space-y-3">
-                                <!-- Task cards will be populated here -->
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </section>
-
-            <!-- Team Management Section - Only visible for project managers -->
-            <section id="team-management" class="mb-8">
-                <h2 class="text-2xl font-semibold mb-6">Team Management</h2>
-                <div class="bg-white rounded-xl shadow-md p-6">
-                    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                        <!-- Team member cards will be populated here -->
-                    </div>
-                </div>
-            </section>
-            <?php endif; ?>
             <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
             <!-- Project Requests Section -->
             <section id="project-requests" class="mb-8">
@@ -468,6 +437,13 @@ $user->setId($_SESSION['userid']);
                 newProjectModal.classList.add('flex');
             });
         }
+        const newProjectBtn2 = document.getElementById('newProjectBtn2');
+        if (newProjectBtn2 && newProjectModal) {
+            newProjectBtn2.addEventListener('click', () => {
+                newProjectModal.classList.remove('hidden');
+                newProjectModal.classList.add('flex');
+            });
+        }
 
         function closeModal(modalId) {
             const modal = document.getElementById(modalId);
@@ -476,18 +452,6 @@ $user->setId($_SESSION['userid']);
                 modal.classList.add('hidden');
             }
         }
-
-
-        //   // Toggle between Dashboard and Reports
-        //   document.getElementById('Rapports').addEventListener('click', () => {
-        //     document.getElementById('dashboard-section').classList.add('hidden');
-        //     document.getElementById('reports-section').classList.remove('hidden');
-        // });
-
-        // document.getElementById('dashboard-link').addEventListener('click', () => {
-        //     document.getElementById('reports-section').classList.add('hidden');
-        //     document.getElementById('dashboard-section').classList.remove('hidden');
-        // });
 
         // Charts
         // Project Progress Chart
