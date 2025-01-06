@@ -5,6 +5,7 @@ $user = new User($_SESSION['username'], $_SESSION['email']);
 $user->setId($_SESSION['userid']);
 if($_SERVER['REQUEST_METHOD'] === 'GET') {
     $project_id  = $_GET['project_id'] ;
+    // $_SESSION['project_id']  = $project_id;
 }
 $project = $user->getProjectById($project_id);
 $projectMembers = $user->getProjectMembers($project_id);
@@ -19,6 +20,30 @@ $projectMembers = $user->getProjectMembers($project_id);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
 </head>
 <body class="bg-gray-50">
+        <!-- Success/Error Messages -->
+        <?php if(isset($_SESSION["success"])): ?>
+    <div id="successAlert" class="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span><?php echo $_SESSION["successD"]; ?></span>
+            <button onclick="this.parentElement.parentElement.style.display='none'" class="ml-4">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <?php unset($_SESSION["successD"]); endif; ?>
+
+    <?php if(isset($_SESSION["errorD"])): ?>
+    <div id="errorAlert" class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span><?php echo $_SESSION["errorD"]; ?></span>
+            <button onclick="this.parentElement.parentElement.style.display='none'" class="ml-4">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <?php unset($_SESSION["error"]); endif; ?>
     <div class="min-h-screen">
         <!-- Navigation Bar -->
         <nav class="bg-white shadow-sm">
@@ -84,15 +109,21 @@ $projectMembers = $user->getProjectMembers($project_id);
                         <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <!-- Team Member Cards -->
                              <?php foreach( $projectMembers as $projectMember ): ?>
-                            <div class="flex items-center space-x-4 p-4 bg-gray-50 rounded-xl">
-                                <img src="https://ui-avatars.com/api/?name=<?= $projectMember["username"] ?>&size=64" 
-                                     alt="John Doe" 
-                                     class="w-16 h-16 rounded-full">
-                                <div>
-                                    <div class="font-semibold text-lg"><?= $projectMember["username"] ?></div>
-                                    <div class="text-blue-600"><?= $projectMember["role"] ?></div>
-                                    <div class="text-gray-500 text-sm"><?= $projectMember["email"] ?></div>
+                            <div class="flex items-center justify-between p-4 bg-gray-50 rounded-xl">
+                                <div class="flex items-center space-x-4">
+                                    <img src="https://ui-avatars.com/api/?name=<?= $projectMember["username"] ?>&size=64" 
+                                         alt="John Doe" 
+                                         class="w-16 h-16 rounded-full">
+                                    <div>
+                                        <div class="font-semibold text-lg"><?= $projectMember["username"] ?></div>
+                                        <div class="text-blue-600"><?= $projectMember["role"] ?></div>
+                                        <div class="text-gray-500 text-sm"><?= $projectMember["email"] ?></div>
+                                    </div>
                                 </div>
+                                <a href="./../../controller/project.controller.php?action=delet_member&member_id=<?= $projectMember["id"] ?>&project_id=<?= $project_id ?>" class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-white border border-red-600 hover:bg-red-600 rounded-md transition-colors duration-300">
+                                    <i class="fas fa-user-minus mr-1"></i>
+                                    Remove
+                                </a>
                             </div>
                             <?php endforeach ?>
                         </div>
@@ -138,9 +169,9 @@ $projectMembers = $user->getProjectMembers($project_id);
                             <button class="flex items-center justify-center w-full px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-edit mr-2"></i>Edit Project
                             </button>
-                            <button class="flex items-center justify-center w-full px-6 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
+                            <a href="./../../controller/project.controller.php?action=delet&project_id=<?= $project_id ?>" class="flex items-center justify-center w-full px-6 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-trash-alt mr-2"></i>Delete Project
-                            </button>
+                            </a>
                         </div>
                     </div>
                 </div>
