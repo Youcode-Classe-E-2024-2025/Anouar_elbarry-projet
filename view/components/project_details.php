@@ -120,10 +120,12 @@ $projectMembers = $user->getProjectMembers($project_id);
                                         <div class="text-gray-500 text-sm"><?= $projectMember["email"] ?></div>
                                     </div>
                                 </div>
+                                <?php  if ($projectMember["role"] === "TEAM_MEMBER" ):?>
                                 <a href="./../../controller/project.controller.php?action=delet_member&member_id=<?= $projectMember["id"] ?>&project_id=<?= $project_id ?>" class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-white border border-red-600 hover:bg-red-600 rounded-md transition-colors duration-300">
                                     <i class="fas fa-user-minus mr-1"></i>
                                     Remove
                                 </a>
+                                <?php endif ?>
                             </div>
                             <?php endforeach ?>
                         </div>
