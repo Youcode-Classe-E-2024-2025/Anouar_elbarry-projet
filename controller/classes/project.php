@@ -22,9 +22,39 @@ class Project {
         $this->dueDate = $dueDate;
     }
     public function getId(){}
-    public function delet(){}
+    public static function delet($project_id,$db){
+        try {
+            $conn = $db->getConnection();
+            $query = "DELETE FROM projects WHERE id = :project_id";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam("project_id", $project_id, PDO::PARAM_INT);
+            return $stmt->execute([
+                "project_id" => $project_id
+            ]);
+        } catch (PDOException $e) {
+            // Log the error
+            error_log("Failed to delete project: " . $e->getMessage());
+            // You can throw a custom exception or return false
+            return false;
+        }
+    }
     public function addMember(){}
-    public function removeMember(){}
+    public function removeMember($project_id,$db){
+        try {
+            $conn = $db->getConnection();
+            $query = "DELETE FROM team WHERE id = :project_id";
+            $stmt = $conn->prepare($query);
+            $stmt->bindParam("project_id", $project_id, PDO::PARAM_INT);
+            return $stmt->execute([
+                "project_id" => $project_id
+            ]);
+        } catch (PDOException $e) {
+            // Log the error
+            error_log("Failed to delete project: " . $e->getMessage());
+            // You can throw a custom exception or return false
+            return false;
+        }
+    }
     public static function getPublicProjects($db){
     $conn = $db->getConnection();
     $query = "SELECT * FROM projects WHERE isPublic = 1";
@@ -33,4 +63,5 @@ class Project {
     $projects = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $projects;
     }
+    
 }
