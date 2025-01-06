@@ -3,7 +3,7 @@ session_start();
 require_once __DIR__ . "/classes/configDB.php";
 require_once __DIR__ . "/classes/user.php";
 require_once __DIR__ . "/classes/project.php";
-
+$db = new Database();
 if (isset($_POST['newProjectForm'])) {
     // Get form data
     $projectName = trim($_POST['project_name']);
@@ -109,4 +109,13 @@ if(isset($_POST['removeMember'])) {
     
     header('Location: ../view/project-manager-dashboard.php');
     exit();
+}
+
+if($_SERVER['REQUEST_METHOD'] == 'GET' && $_GET['action'] === 'delet'){
+    $project_id = $_GET['project_id'];
+    $project = Project::delet($project_id, $db );
+    if(isset($project)){
+        $_SESSION['success'] = 'the project have been deleted sucessfuly';
+        header('Location: ../view/dashboard.php');
+    }
 }
