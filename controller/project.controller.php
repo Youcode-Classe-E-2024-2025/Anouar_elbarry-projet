@@ -119,3 +119,13 @@ if($_SERVER['REQUEST_METHOD'] == 'GET' && $_GET['action'] === 'delet'){
         header('Location: ../view/dashboard.php');
     }
 }
+if($_SERVER['REQUEST_METHOD'] == 'GET' && $_GET['action'] === 'delet_member'){
+    $member_id = $_GET['member_id'];
+    $project_id = $_GET['project_id'];
+    $project = Project::removeMember($member_id,$project_id, $db );
+    if(isset($project)){
+        // echo'member have been removed sucessfuly';
+        $_SESSION['success'] = 'member have been removed sucessfuly';
+        header('Location: ../view/components/project_details.php?project_id=' . $project_id);
+    }
+}
