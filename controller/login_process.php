@@ -22,8 +22,11 @@ $db->getConnection();
             $_SESSION['userid'] = $user_Data["id"];
             $_SESSION['userRole'] = $user_Data["role"];
             $_SESSION['email'] = $user_Data["email"]; 
-          
+            if($user_Data["role"] == "PROJECT_MANAGER" || $user_Data["role"] == "TEAM_MEMBER") {
             header('Location: ../view/dashboard.php');
+        } else{
+            header('location: ../view/role_selection.php');
+        }
         }
         else{
            
