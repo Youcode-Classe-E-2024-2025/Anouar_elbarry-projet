@@ -28,7 +28,7 @@ CREATE TABLE team_members (
     user_id INT NOT NULL,
     project_id INT NOT NULL,
     FOREIGN KEY (user_id) REFERENCES users(id),
-    FOREIGN KEY (project_id) REFERENCES projects(id),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
     UNIQUE KEY unique_membership (user_id, project_id)
 );
 
@@ -64,4 +64,13 @@ CREATE TABLE task_tags (
     PRIMARY KEY (task_id, tag_id),
     FOREIGN KEY (task_id) REFERENCES tasks(id),
     FOREIGN KEY (tag_id) REFERENCES tags(id)
+);
+
+    CREATE TABLE task_members (
+    task_id INT,
+    user_id INT,
+    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    PRIMARY KEY (task_id, user_id),
+    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
 );
