@@ -4,6 +4,7 @@ require_once __DIR__ . "/../controller/classes/user.php";
 require_once __DIR__ . "/../controller/classes/project.php";
 require_once __DIR__ . "/../controller/classes/category.php";
 require_once __DIR__ . "/../controller/classes/configDB.php";
+require_once __DIR__ . "/../controller/classes/task.php";
 
 $db = new Database();
 $conn = $db->getConnection();
@@ -15,9 +16,18 @@ if($_SERVER['REQUEST_METHOD'] === 'GET') {
     $_SESSION["project_id"] = $project_id ;
 }
 $project = $user->getProjectById($project_id);
+if (!$project) {
+    header('Location: dashboard.php?error=project_not_found');
+    exit();
+}
 $projectMembers = $user->getProjectMembers($project_id);
 $category = new Category();
 $categories = $category::getAll($db) ;
+$IN_progresstasks = Task::getTaskByStatus($db,'IN_PROGRESS');
+$TODOtasks = Task::getTaskByStatus($db,'TODO');
+$DONEtasks = Task::getTaskByStatus($db,'DONE');
+
+$AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -29,6 +39,30 @@ $categories = $category::getAll($db) ;
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50">
+     <!-- Success/Error Messages -->
+     <?php if(isset($_SESSION["successT"])): ?>
+    <div id="successAlert" class="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span><?php echo $_SESSION["successT"]; ?></span>
+            <button onclick="this.parentElement.parentElement.style.display='none'" class="ml-4">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <?php unset($_SESSION["successT"]); endif; ?>
+
+    <?php if(isset($_SESSION["error"])): ?>
+    <div id="errorAlert" class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span><?php echo $_SESSION["error"]; ?></span>
+            <button onclick="this.parentElement.parentElement.style.display='none'" class="ml-4">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <?php unset($_SESSION["error"]); endif; ?>
     <!-- Navigation -->
     <nav class="bg-white shadow-sm">
         <div class="container mx-auto px-4 py-3">
@@ -63,7 +97,7 @@ $categories = $category::getAll($db) ;
                     <div class="flex items-center space-x-4 text-sm text-gray-500">
                         <span><i class="fas fa-calendar mr-2"></i>Due: <?= $project["dueDate"]?></span>
                         <span><i class="fas fa-users mr-2"></i><?= count($projectMembers)?> members</span>
-                        <span><i class="fas fa-tasks mr-2"></i>12 tasks</span>
+                        <span><i class="fas fa-tasks mr-2"></i><?= $AllTasks?> tasks</span>
                     </div>
                 </div>
                 <div class="flex -space-x-2">
@@ -86,33 +120,58 @@ $categories = $category::getAll($db) ;
             <div class="bg-gray-50 rounded-lg p-4">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-semibold text-gray-800">To Do</h2>
-                    <span class="text-sm text-gray-500">4 tasks</span>
+                    <span class="text-sm text-gray-500"><?= count($TODOtasks)?> tasks</span>
                 </div>
                 <!-- Task Cards -->
                 <div class="space-y-4">
+                    <?php 
+                            foreach($TODOtasks as $task): 
+                                // Determine priority color
+                                $priorityColor = match($task['priority']) {
+                                    'HIGH' => 'bg-red-100 text-red-800',
+                                    'MEDIUM' => 'bg-yellow-100 text-yellow-800',
+                                    'LOW' => 'bg-green-100 text-green-800',
+                                    default => 'bg-gray-100 text-gray-800'
+                                };
+                            ?>
                     <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-medium text-gray-800">Design User Interface</h3>
-                            <span class="px-2 py-1 bg-yellow-100 text-yellow-800 rounded-full text-xs">Medium</span>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex flex-col">
+                                <h3 class="font-medium text-gray-800"><?= $task['title'] ?></h3>
+                                <div class="flex gap-2 mt-2">
+                                    <span class="px-2 py-1 rounded-full text-xs <?= $priorityColor ?>">
+                                        <i class="fas fa-flag mr-1"></i><?= $task['priority'] ?>
+                                    </span>
+                                    <?php if($task['tag']): ?>
+                                    <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs flex items-center">
+                                        <i class="fas fa-tag mr-1"></i><?= $task['tag'] ?>
+                                    </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-sm text-gray-600 mb-3">Create wireframes and mockups for the new dashboard interface.</p>
+                        <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Due Dec 20</span>
-                            <img src="https://ui-avatars.com/api/?name=Jane+Smith" alt="Assigned to" class="w-6 h-6 rounded-full">
+                            <span class="text-gray-500">Due <?= $task['dueDate'] ?></span>
+                            <div class="flex -space-x-2">
+                                <?php 
+                                $Taskmembers = Task::getTaskMembers($db, $task['id'], $project_id);
+                                // Display first 3 members
+                                foreach(array_slice($Taskmembers, 0, 3) as $member): ?>
+                                    <img src="https://ui-avatars.com/api/?name=<?= $member['username']?>" 
+                                         alt="<?= $member['username'] ?>" 
+                                         class="w-6 h-6 rounded-full border-2 border-white">
+                                <?php endforeach; 
+                                // Show count if more than 3 members
+                                if(count($Taskmembers) > 3): ?>
+                                    <span class="w-6 h-6 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs">
+                                        +<?= count($Taskmembers) - 3 ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
-                    
-                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-medium text-gray-800">Database Schema</h3>
-                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">High</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-3">Design and implement the database schema for user management.</p>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Due Dec 15</span>
-                            <img src="https://ui-avatars.com/api/?name=John+Doe" alt="Assigned to" class="w-6 h-6 rounded-full">
-                        </div>
-                    </div>
+                    <?php endforeach ?>
                 </div>
             </div>
 
@@ -120,62 +179,114 @@ $categories = $category::getAll($db) ;
             <div class="bg-gray-50 rounded-lg p-4">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-semibold text-gray-800">In Progress</h2>
-                    <span class="text-sm text-gray-500">3 tasks</span>
+                    <span class="text-sm text-gray-500"><?= count($IN_progresstasks)?> Tasks</span>
                 </div>
                 <div class="space-y-4">
+                <?php 
+                            foreach($IN_progresstasks as $task): 
+                                // Determine priority color
+                                $priorityColor = match($task['priority']) {
+                                    'HIGH' => 'bg-red-100 text-red-800',
+                                    'MEDIUM' => 'bg-yellow-100 text-yellow-800',
+                                    'LOW' => 'bg-green-100 text-green-800',
+                                    default => 'bg-gray-100 text-gray-800'
+                                };
+                            ?>
                     <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-medium text-gray-800">API Integration</h3>
-                            <span class="px-2 py-1 bg-red-100 text-red-800 rounded-full text-xs">High</span>
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex flex-col">
+                                <h3 class="font-medium text-gray-800"><?= $task['title'] ?></h3>
+                                <div class="flex gap-2 mt-2">
+                                    <span class="px-2 py-1 rounded-full text-xs <?= $priorityColor ?>">
+                                        <i class="fas fa-flag mr-1"></i><?= $task['priority'] ?>
+                                    </span>
+                                    <?php if($task['tag']): ?>
+                                    <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs flex items-center">
+                                        <i class="fas fa-tag mr-1"></i><?= $task['tag'] ?>
+                                    </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-sm text-gray-600 mb-3">Integrate payment gateway API and implement webhook handlers.</p>
+                        <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Due Dec 18</span>
-                            <img src="https://ui-avatars.com/api/?name=Bob+Johnson" alt="Assigned to" class="w-6 h-6 rounded-full">
+                            <span class="text-gray-500">Due <?= $task['dueDate'] ?></span>
+                            <div class="flex -space-x-2">
+                                <?php 
+                                $Taskmembers = Task::getTaskMembers($db, $task['id'], $project_id);
+                                // Display first 3 members
+                                foreach(array_slice($Taskmembers, 0, 3) as $member): ?>
+                                    <img src="https://ui-avatars.com/api/?name=<?= $member['username']?>" 
+                                         alt="<?= $member['username'] ?>" 
+                                         class="w-6 h-6 rounded-full border-2 border-white">
+                                <?php endforeach; 
+                                // Show count if more than 3 members
+                                if(count($Taskmembers) > 3): ?>
+                                    <span class="w-6 h-6 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs">
+                                        +<?= count($Taskmembers) - 3 ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
+                    <?php endforeach ?>
                 </div>
             </div>
-
-            <!-- Review Column -->
-            <div class="bg-gray-50 rounded-lg p-4">
-                <div class="flex justify-between items-center mb-4">
-                    <h2 class="font-semibold text-gray-800">Review</h2>
-                    <span class="text-sm text-gray-500">2 tasks</span>
-                </div>
-                <div class="space-y-4">
-                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-medium text-gray-800">User Authentication</h3>
-                            <span class="px-2 py-1 bg-green-100 text-green-800 rounded-full text-xs">Low</span>
-                        </div>
-                        <p class="text-sm text-gray-600 mb-3">Implement OAuth2 authentication flow and user session management.</p>
-                        <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Due Dec 22</span>
-                            <img src="https://ui-avatars.com/api/?name=Alice+Brown" alt="Assigned to" class="w-6 h-6 rounded-full">
-                        </div>
-                    </div>
-                </div>
-            </div>
-
             <!-- Done Column -->
             <div class="bg-gray-50 rounded-lg p-4">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-semibold text-gray-800">Done</h2>
-                    <span class="text-sm text-gray-500">3 tasks</span>
+                    <span class="text-sm text-gray-500"><?= count($DONEtasks)?> tasks</span>
                 </div>
                 <div class="space-y-4">
-                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer opacity-75">
-                        <div class="flex justify-between items-start mb-2">
-                            <h3 class="font-medium text-gray-800 line-through">Project Setup</h3>
-                            <span class="px-2 py-1 bg-gray-100 text-gray-800 rounded-full text-xs">Completed</span>
+                <?php 
+                            foreach($DONEtasks as $task): 
+                                // Determine priority color
+                                $priorityColor = match($task['priority']) {
+                                    'HIGH' => 'bg-red-100 text-red-800',
+                                    'MEDIUM' => 'bg-yellow-100 text-yellow-800',
+                                    'LOW' => 'bg-green-100 text-green-800',
+                                    default => 'bg-gray-100 text-gray-800'
+                                };
+                            ?>
+                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
+                        <div class="flex justify-between items-start mb-3">
+                            <div class="flex flex-col">
+                                <h3 class="font-medium text-gray-800"><?= $task['title'] ?></h3>
+                                <div class="flex gap-2 mt-2">
+                                    <span class="px-2 py-1 rounded-full text-xs <?= $priorityColor ?>">
+                                        <i class="fas fa-flag mr-1"></i><?= $task['priority'] ?>
+                                    </span>
+                                    <?php if($task['tag']): ?>
+                                    <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs flex items-center">
+                                        <i class="fas fa-tag mr-1"></i><?= $task['tag'] ?>
+                                    </span>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
                         </div>
-                        <p class="text-sm text-gray-600 mb-3">Initialize project repository and set up development environment.</p>
+                        <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>
                         <div class="flex justify-between items-center text-sm">
-                            <span class="text-gray-500">Completed Dec 10</span>
-                            <img src="https://ui-avatars.com/api/?name=John+Doe" alt="Completed by" class="w-6 h-6 rounded-full">
+                            <span class="text-gray-500">Due <?= $task['dueDate'] ?></span>
+                            <div class="flex -space-x-2">
+                                <?php 
+                                $Taskmembers = Task::getTaskMembers($db, $task['id'], $project_id);
+                                // Display first 3 members
+                                foreach(array_slice($Taskmembers, 0, 3) as $member): ?>
+                                    <img src="https://ui-avatars.com/api/?name=<?= $member['username']?>" 
+                                         alt="<?= $member['username'] ?>" 
+                                         class="w-6 h-6 rounded-full border-2 border-white">
+                                <?php endforeach; 
+                                // Show count if more than 3 members
+                                if(count($Taskmembers) > 3): ?>
+                                    <span class="w-6 h-6 rounded-full border-2 border-white bg-gray-200 flex items-center justify-center text-xs">
+                                        +<?= count($Taskmembers) - 3 ?>
+                                    </span>
+                                <?php endif; ?>
+                            </div>
                         </div>
                     </div>
+                    <?php endforeach ?>
                 </div>
             </div>
         </div>
@@ -285,10 +396,9 @@ $categories = $category::getAll($db) ;
                                     <div class="flex items-center">
                                         <label class="flex items-center space-x-2">
                                             <input type="checkbox" 
-                                                   name="assigned_members[<?= $member['id'] ?>]" 
-                                                   value="<?= $member['id'] ?>"
-                                                   class="form-checkbox text-blue-600">
-                                            <span class="text-xs text-gray-700">Add to team</span>
+                                                   name="assignedTo[]" 
+                                                   value="<?= $member['id'] ?>" 
+                                                   class="form-checkbox h-4 w-4 text-blue-500 rounded border-gray-300 focus:ring-blue-500">
                                         </label>
                                     </div>
                                 </div>
