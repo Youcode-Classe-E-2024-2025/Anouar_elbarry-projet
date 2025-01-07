@@ -2,15 +2,22 @@
 session_start();
 require_once __DIR__ . "/../controller/classes/user.php";
 require_once __DIR__ . "/../controller/classes/project.php";
+require_once __DIR__ . "/../controller/classes/category.php";
+require_once __DIR__ . "/../controller/classes/configDB.php";
 
+$db = new Database();
+$conn = $db->getConnection();
 // Initialize user
 $user = new User($_SESSION['username'], $_SESSION['email']);
 $user->setId($_SESSION['userid']);
 if($_SERVER['REQUEST_METHOD'] === 'GET') {
     $project_id  = $_GET['project_id'] ;
+    $_SESSION["project_id"] = $project_id ;
 }
 $project = $user->getProjectById($project_id);
 $projectMembers = $user->getProjectMembers($project_id);
+$category = new Category();
+$categories = $category::getAll($db) ;
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -185,26 +192,26 @@ $projectMembers = $user->getProjectMembers($project_id);
                     </svg>
                 </button>
             </div>
-            <form class="space-y-6">
+            <form class="space-y-6" method="POST" action="../controller/task.controller.php">
                 <div class="grid grid-cols-2 gap-8">
                     <!-- Left Column -->
                     <div class="space-y-6">
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">Task Title</label>
-                            <input type="text" placeholder="Enter task title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                            <input name="title" type="text" placeholder="Enter task title" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                         </div>
                         <div>
                             <label class="block text-gray-700 text-sm font-medium mb-2">Description</label>
-                            <textarea rows="3" placeholder="Enter task description" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"></textarea>
+                            <textarea name="description" rows="3" placeholder="Enter task description" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200"></textarea>
                         </div>
                         <div class="grid grid-cols-2 gap-4">
                             <div>
                                 <label class="block text-gray-700 text-sm font-medium mb-2">Due Date</label>
-                                <input type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                                <input name="dueDate" type="date" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                             </div>
                             <div>
                                 <label class="block text-gray-700 text-sm font-medium mb-2">Priority</label>
-                                <select class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
+                                <select name="priority" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                                     <option value="low">Low</option>
                                     <option value="medium">Medium</option>
                                     <option value="high">High</option>
@@ -218,11 +225,10 @@ $projectMembers = $user->getProjectMembers($project_id);
                             <label class="block text-gray-700 text-sm font-medium mb-2">Category</label>
                             <div class="flex gap-2">
                                 <select id="categorySelect" name="category" class="flex-grow px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
-                                    <option value="">Select a category</option>
-                                    <option value="development" data-color="purple">Development</option>
-                                    <option value="design" data-color="blue">Design</option>
-                                    <option value="marketing" data-color="green">Marketing</option>
-                                    <option value="research" data-color="yellow">Research</option>
+                                <option value="">Select a category</option>
+                                <?php foreach($categories as $category): ?>    
+                                    <option value="<?= $category['name'] ?>"><?= $category['name'] ?></option>
+                                <?php endforeach ?>
                                 </select>
                                 <button type="button" id="newCategoryBtn" onclick="toggleNewCategoryInput()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
                                     <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -252,6 +258,7 @@ $projectMembers = $user->getProjectMembers($project_id);
                             <div class="relative">
                                 <input type="text" 
                                        id="tagInput" 
+                                       name="tag" 
                                        placeholder="Type tag and press Enter (e.g., feature, bug, urgent)" 
                                        class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all duration-200">
                                 <input type="hidden" name="tags" id="tagsInput" value="">
@@ -260,106 +267,34 @@ $projectMembers = $user->getProjectMembers($project_id);
                         <div class="mt-4">
                             <label class="block text-gray-700 mb-1 text-sm">Assign Team Members</label>
                             <div class="border rounded-lg p-3 max-h-48 overflow-y-auto">
+                            <?php 
+                    $allUsers = User::getUsers();
+                    foreach($allUsers as $member):
+                        if(($member['id'] != $_SESSION['userid']) && $member['role'] == "TEAM_MEMBER"):
+                    ?>
                                 <div class="flex items-center justify-between py-1.5 border-b">
                                     <div class="flex items-center space-x-2">
-                                        <img src="https://ui-avatars.com/api/?name=John+Doe&background=0D8ABC&color=fff" 
-                                             alt="John Doe" 
+                                        <img src="https://ui-avatars.com/api/?name=<?= $member["username"] ?>&background=0D8ABC&color=fff" 
+                                             alt="<?= $member["username"] ?>" 
                                              class="w-6 h-6 rounded-full">
                                         <div>
-                                            <p class="text-sm font-medium">John Doe</p>
-                                            <p class="text-xs text-gray-500">john.doe@example.com</p>
+                                            <p class="text-sm font-medium"><?= $member["username"] ?></p>
+                                            <p class="text-xs text-gray-500"><?= $member["email"] ?></p>
                                         </div>
                                     </div>
                                     <div class="flex items-center">
                                         <label class="flex items-center space-x-2">
                                             <input type="checkbox" 
-                                                   name="member_roles[1]" 
-                                                   value="TEAM_MEMBER"
+                                                   name="assigned_members[<?= $member['id'] ?>]" 
+                                                   value="<?= $member['id'] ?>"
                                                    class="form-checkbox text-blue-600">
                                             <span class="text-xs text-gray-700">Add to team</span>
                                         </label>
                                     </div>
                                 </div>
-                                <div class="flex items-center justify-between py-1.5 border-b">
-                                    <div class="flex items-center space-x-2">
-                                        <img src="https://ui-avatars.com/api/?name=Jane+Smith&background=0D8ABC&color=fff" 
-                                             alt="Jane Smith" 
-                                             class="w-6 h-6 rounded-full">
-                                        <div>
-                                            <p class="text-sm font-medium">Jane Smith</p>
-                                            <p class="text-xs text-gray-500">jane.smith@example.com</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <label class="flex items-center space-x-2">
-                                            <input type="checkbox" 
-                                                   name="member_roles[2]" 
-                                                   value="TEAM_MEMBER"
-                                                   class="form-checkbox text-blue-600">
-                                            <span class="text-xs text-gray-700">Add to team</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between py-1.5 border-b">
-                                    <div class="flex items-center space-x-2">
-                                        <img src="https://ui-avatars.com/api/?name=Mike+Johnson&background=0D8ABC&color=fff" 
-                                             alt="Mike Johnson" 
-                                             class="w-6 h-6 rounded-full">
-                                        <div>
-                                            <p class="text-sm font-medium">Mike Johnson</p>
-                                            <p class="text-xs text-gray-500">mike.johnson@example.com</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <label class="flex items-center space-x-2">
-                                            <input type="checkbox" 
-                                                   name="member_roles[3]" 
-                                                   value="TEAM_MEMBER"
-                                                   class="form-checkbox text-blue-600">
-                                            <span class="text-xs text-gray-700">Add to team</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between py-1.5 border-b">
-                                    <div class="flex items-center space-x-2">
-                                        <img src="https://ui-avatars.com/api/?name=Sarah+Wilson&background=0D8ABC&color=fff" 
-                                             alt="Sarah Wilson" 
-                                             class="w-6 h-6 rounded-full">
-                                        <div>
-                                            <p class="text-sm font-medium">Sarah Wilson</p>
-                                            <p class="text-xs text-gray-500">sarah.wilson@example.com</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <label class="flex items-center space-x-2">
-                                            <input type="checkbox" 
-                                                   name="member_roles[4]" 
-                                                   value="TEAM_MEMBER"
-                                                   class="form-checkbox text-blue-600">
-                                            <span class="text-xs text-gray-700">Add to team</span>
-                                        </label>
-                                    </div>
-                                </div>
-                                <div class="flex items-center justify-between py-1.5">
-                                    <div class="flex items-center space-x-2">
-                                        <img src="https://ui-avatars.com/api/?name=Alex+Brown&background=0D8ABC&color=fff" 
-                                             alt="Alex Brown" 
-                                             class="w-6 h-6 rounded-full">
-                                        <div>
-                                            <p class="text-sm font-medium">Alex Brown</p>
-                                            <p class="text-xs text-gray-500">alex.brown@example.com</p>
-                                        </div>
-                                    </div>
-                                    <div class="flex items-center">
-                                        <label class="flex items-center space-x-2">
-                                            <input type="checkbox" 
-                                                   name="member_roles[5]" 
-                                                   value="TEAM_MEMBER"
-                                                   class="form-checkbox text-blue-600">
-                                            <span class="text-xs text-gray-700">Add to team</span>
-                                        </label>
-                                    </div>
-                                </div>
+                                <?php 
+                                endif;
+                                endforeach ?>
                             </div>
                         </div>
                     </div>
@@ -430,178 +365,6 @@ $projectMembers = $user->getProjectMembers($project_id);
                 newCategoryBtn.classList.remove('bg-gray-200');
             }
         }
-
-        // Add new category
-        function addNewCategory() {
-            const input = document.getElementById('newCategory');
-            const categoryText = input.value.trim();
-            
-            if (categoryText) {
-                const select = document.getElementById('categorySelect');
-                const colors = ['purple', 'blue', 'green', 'yellow'];
-                const randomColor = colors[Math.floor(Math.random() * colors.length)];
-                
-                const option = document.createElement('option');
-                option.value = categoryText.toLowerCase();
-                option.textContent = categoryText;
-                option.dataset.color = randomColor;
-                
-                select.appendChild(option);
-                select.value = option.value; // Select the new option
-                
-                // Reset and hide the new category input
-                input.value = '';
-                toggleNewCategoryInput();
-            }
-        }
-
-        // Handle Enter key press for category input
-        document.getElementById('newCategory').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                addNewCategory();
-            }
-        });
-
-        // Handle Escape key press to cancel new category
-        document.getElementById('newCategory').addEventListener('keydown', function(e) {
-            if (e.key === 'Escape') {
-                e.preventDefault();
-                toggleNewCategoryInput();
-            }
-        });
-
-        // Tags handling
-        const tagInput = document.getElementById('tagInput');
-        const tagsContainer = document.getElementById('tagsContainer');
-        const tagsInput = document.getElementById('tagsInput');
-        let tags = new Set();
-
-        // Add tag function
-        function addTag(tagText) {
-            tagText = tagText.trim().toLowerCase();
-            if (tagText && !tags.has(tagText)) {
-                tags.add(tagText);
-                
-                const tagElement = document.createElement('div');
-                tagElement.className = 'inline-flex items-center gap-1 px-3 py-1 bg-gray-100 text-gray-800 rounded-full text-sm';
-                tagElement.innerHTML = `
-                    <span>#${tagText}</span>
-                    <button type="button" onclick="removeTag('${tagText}')" class="text-gray-500 hover:text-gray-700 focus:outline-none">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                `;
-                
-                tagsContainer.appendChild(tagElement);
-                updateTagsInput();
-            }
-        }
-
-        // Remove tag function
-        function removeTag(tagText) {
-            tags.delete(tagText);
-            const tagElements = tagsContainer.children;
-            for (let element of tagElements) {
-                if (element.querySelector('span').textContent === `#${tagText}`) {
-                    element.remove();
-                    break;
-                }
-            }
-            updateTagsInput();
-        }
-
-        // Update hidden input with all tags
-        function updateTagsInput() {
-            tagsInput.value = Array.from(tags).join(',');
-        }
-
-        // Handle tag input
-        tagInput.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' || e.key === ',') {
-                e.preventDefault();
-                const tags = this.value.split(',');
-                tags.forEach(tag => {
-                    if (tag.trim()) {
-                        addTag(tag);
-                    }
-                });
-                this.value = '';
-            }
-        });
-
-        // Handle paste event
-        tagInput.addEventListener('paste', function(e) {
-            e.preventDefault();
-            const pastedText = (e.clipboardData || window.clipboardData).getData('text');
-            const tags = pastedText.split(/[,\n\r]/);
-            tags.forEach(tag => {
-                if (tag.trim()) {
-                    addTag(tag);
-                }
-            });
-        });
-
-        // Store assigned members
-        let assignedMembersList = new Set();
-
-        // Assign member function
-        function assignMember() {
-            const select = document.getElementById('memberSelect');
-            const memberId = select.value;
-            const memberName = select.options[select.selectedIndex].text;
-            
-            if (memberId && !assignedMembersList.has(memberId)) {
-                assignedMembersList.add(memberId);
-                
-                const assignedMembersDiv = document.getElementById('assignedMembers');
-                const memberTag = document.createElement('div');
-                memberTag.className = 'inline-flex items-center gap-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm';
-                memberTag.innerHTML = `
-                    <span>${memberName}</span>
-                    <button type="button" onclick="removeMember('${memberId}')" class="text-blue-600 hover:text-blue-800 focus:outline-none">
-                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-                        </svg>
-                    </button>
-                `;
-                
-                assignedMembersDiv.appendChild(memberTag);
-                updateAssignedMembersInput();
-                select.value = ''; // Reset select
-            }
-        }
-
-        // Remove member function
-        function removeMember(memberId) {
-            assignedMembersList.delete(memberId);
-            const assignedMembersDiv = document.getElementById('assignedMembers');
-            const memberTags = assignedMembersDiv.children;
-            
-            for (let tag of memberTags) {
-                if (tag.querySelector(`button[onclick="removeMember('${memberId}')"]`)) {
-                    tag.remove();
-                    break;
-                }
-            }
-            
-            updateAssignedMembersInput();
-        }
-
-        // Update hidden input with assigned member IDs
-        function updateAssignedMembersInput() {
-            const input = document.getElementById('assignedMembersInput');
-            input.value = Array.from(assignedMembersList).join(',');
-        }
-
-        // Handle Enter key press for member selection
-        document.getElementById('memberSelect').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                assignMember();
-            }
-        });
     </script>
 </body>
 </html>
