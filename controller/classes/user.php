@@ -17,18 +17,17 @@ class User {
     private Project $project;
     private Database $db;
     //Methodes
-    public function __construct($username, $email, $password = null , $role = self::ROLE_TEAM_MEMBER) {
+    public function __construct($username, $email, $password = null) {
         $this->db = new Database(); 
         $this->username = $username;
         $this->email = $email;
         if ($password !== null) {
             $this->setPassword($password);
         }
-        $this->role = $role;
     }
     
 
-    public function regester($username, $email, $password){
+    public function register($password){
         $conn = $this->db->getConnection();
         $query = "INSERT INTO users (username, email, userPassword) VALUES (:username, :email, :password)";
         $stmt = $conn->prepare($query);
@@ -36,8 +35,8 @@ class User {
         
         try {
             $stmt->execute([
-                "username"=> $username,
-                "email"=> $email,
+                "username"=> $this->username,
+                "email"=> $this->email,
                 "password"=> $hashedPassword
             ]);
             
@@ -239,6 +238,14 @@ class User {
                 $stmt->execute();
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
         
+    }   
+    public static function getUserById($id,$db){
+                $conn = $db->getConnection();
+                $query = "SELECT * FROM users WHERE id = :id";
+                $stmt = $conn->prepare($query);
+                $stmt->bindParam("id",$id, PDO::PARAM_INT);
+                $stmt->execute();
+                return $stmt->fetchAll(PDO::FETCH_ASSOC);
     }   
     public static function getTeamMembers(){
                 $db = new Database();
