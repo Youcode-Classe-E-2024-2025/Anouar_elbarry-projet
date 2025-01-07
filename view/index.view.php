@@ -75,6 +75,9 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                     <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Active</span>
                 </div>
                 <div class="flex items-center space-x-4">
+                    <button id="addCategoryBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                        <i class="fas fa-folder-plus mr-2"></i>New Category
+                    </button>
                     <button id="addTaskBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
                         <i class="fas fa-plus mr-2"></i>New Task
                     </button>
@@ -128,26 +131,36 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                             foreach($TODOtasks as $task): 
                                 // Determine priority color
                                 $priorityColor = match($task['priority']) {
-                                    'HIGH' => 'bg-red-100 text-red-800',
-                                    'MEDIUM' => 'bg-yellow-100 text-yellow-800',
-                                    'LOW' => 'bg-green-100 text-green-800',
-                                    default => 'bg-gray-100 text-gray-800'
+                                    'HIGH' => 'bg-red-500',
+                                    'MEDIUM' => 'bg-yellow-500',
+                                    'LOW' => 'bg-green-500',
+                                    default => 'bg-gray-500'
                                 };
                             ?>
                     <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex flex-col">
-                                <h3 class="font-medium text-gray-800"><?= $task['title'] ?></h3>
-                                <div class="flex gap-2 mt-2">
-                                    <span class="px-2 py-1 rounded-full text-xs <?= $priorityColor ?>">
-                                        <i class="fas fa-flag mr-1"></i><?= $task['priority'] ?>
-                                    </span>
-                                    <?php if($task['tag']): ?>
-                                    <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs flex items-center">
-                                        <i class="fas fa-tag mr-1"></i><?= $task['tag'] ?>
-                                    </span>
-                                    <?php endif; ?>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full <?= $priorityColor ?>"></span>
+                                    <h3 class="font-medium text-gray-800"><?= $task['title'] ?></h3>
                                 </div>
+                                <?php if($task['tag']): ?>
+                                <div class="mt-1.5">
+                                    <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs inline-flex items-center">
+                                        <i class="fas fa-tag text-[10px] mr-1"></i><?= $task['tag'] ?>
+                                    </span>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="showTaskDetails(<?= $task['id'] ?>)" 
+                                        class="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteTask(<?= $task['id'] ?>)"
+                                        class="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>
@@ -186,26 +199,36 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                             foreach($IN_progresstasks as $task): 
                                 // Determine priority color
                                 $priorityColor = match($task['priority']) {
-                                    'HIGH' => 'bg-red-100 text-red-800',
-                                    'MEDIUM' => 'bg-yellow-100 text-yellow-800',
-                                    'LOW' => 'bg-green-100 text-green-800',
-                                    default => 'bg-gray-100 text-gray-800'
+                                    'HIGH' => 'bg-red-500',
+                                    'MEDIUM' => 'bg-yellow-500',
+                                    'LOW' => 'bg-green-500',
+                                    default => 'bg-gray-500'
                                 };
                             ?>
                     <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex flex-col">
-                                <h3 class="font-medium text-gray-800"><?= $task['title'] ?></h3>
-                                <div class="flex gap-2 mt-2">
-                                    <span class="px-2 py-1 rounded-full text-xs <?= $priorityColor ?>">
-                                        <i class="fas fa-flag mr-1"></i><?= $task['priority'] ?>
-                                    </span>
-                                    <?php if($task['tag']): ?>
-                                    <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs flex items-center">
-                                        <i class="fas fa-tag mr-1"></i><?= $task['tag'] ?>
-                                    </span>
-                                    <?php endif; ?>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full <?= $priorityColor ?>"></span>
+                                    <h3 class="font-medium text-gray-800"><?= $task['title'] ?></h3>
                                 </div>
+                                <?php if($task['tag']): ?>
+                                <div class="mt-1.5">
+                                    <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs inline-flex items-center">
+                                        <i class="fas fa-tag text-[10px] mr-1"></i><?= $task['tag'] ?>
+                                    </span>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="showTaskDetails(<?= $task['id'] ?>)" 
+                                        class="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteTask(<?= $task['id'] ?>)"
+                                        class="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>
@@ -243,26 +266,36 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                             foreach($DONEtasks as $task): 
                                 // Determine priority color
                                 $priorityColor = match($task['priority']) {
-                                    'HIGH' => 'bg-red-100 text-red-800',
-                                    'MEDIUM' => 'bg-yellow-100 text-yellow-800',
-                                    'LOW' => 'bg-green-100 text-green-800',
-                                    default => 'bg-gray-100 text-gray-800'
+                                    'HIGH' => 'bg-red-500',
+                                    'MEDIUM' => 'bg-yellow-500',
+                                    'LOW' => 'bg-green-500',
+                                    default => 'bg-gray-500'
                                 };
                             ?>
                     <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex flex-col">
-                                <h3 class="font-medium text-gray-800"><?= $task['title'] ?></h3>
-                                <div class="flex gap-2 mt-2">
-                                    <span class="px-2 py-1 rounded-full text-xs <?= $priorityColor ?>">
-                                        <i class="fas fa-flag mr-1"></i><?= $task['priority'] ?>
-                                    </span>
-                                    <?php if($task['tag']): ?>
-                                    <span class="px-2 py-1 bg-blue-50 text-blue-600 rounded-full text-xs flex items-center">
-                                        <i class="fas fa-tag mr-1"></i><?= $task['tag'] ?>
-                                    </span>
-                                    <?php endif; ?>
+                                <div class="flex items-center gap-2">
+                                    <span class="w-2 h-2 rounded-full <?= $priorityColor ?>"></span>
+                                    <h3 class="font-medium text-gray-800"><?= $task['title'] ?></h3>
                                 </div>
+                                <?php if($task['tag']): ?>
+                                <div class="mt-1.5">
+                                    <span class="px-1.5 py-0.5 bg-gray-100 text-gray-600 rounded text-xs inline-flex items-center">
+                                        <i class="fas fa-tag text-[10px] mr-1"></i><?= $task['tag'] ?>
+                                    </span>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <div class="flex items-center space-x-2">
+                                <button onclick="showTaskDetails(<?= $task['id'] ?>)" 
+                                        class="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors">
+                                    <i class="fas fa-eye"></i>
+                                </button>
+                                <button onclick="deleteTask(<?= $task['id'] ?>)"
+                                        class="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors">
+                                    <i class="fas fa-trash-alt"></i>
+                                </button>
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>
@@ -426,6 +459,7 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
         const taskModal = document.getElementById('taskModal');
         const modalContent = document.getElementById('modalContent');
         const addTaskBtn = document.getElementById('addTaskBtn');
+        const addCategoryBtn = document.getElementById('addCategoryBtn');
 
         // Show modal with animation
         function showTaskModal() {
@@ -475,6 +509,75 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                 newCategoryBtn.classList.remove('bg-gray-200');
             }
         }
+        // Auto-hide success/error messages after 5 seconds
+        setTimeout(() => {
+            const successAlert = document.getElementById('successAlert');
+            const errorAlert = document.getElementById('errorAlert');
+            if (successAlert) successAlert.style.display = 'none';
+            if (errorAlert) errorAlert.style.display = 'none';
+        }, 5000);
+
+        // Category Modal Functions
+        function showCategoryModal() {
+            // Create the modal HTML
+            const modalHTML = `
+                <div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+                    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="text-lg font-semibold">Create New Category</h3>
+                            <button onclick="closeCategoryModal()" class="text-gray-500 hover:text-gray-700">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <form action="../controller/category.controller.php" method="POST" class="space-y-4">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
+                                <input type="text" name="name" required
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter category name">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
+                                <textarea name="description" rows="3"
+                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                    placeholder="Enter category description"></textarea>
+                            </div>
+                            <div class="flex justify-end gap-3 pt-4">
+                                <button type="button" onclick="closeCategoryModal()"
+                                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
+                                    Cancel
+                                </button>
+                                <button type="submit"
+                                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
+                                    Create Category
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            `;
+
+            // Add the modal to the document
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+
+        function closeCategoryModal() {
+            const categoryModal = document.getElementById('categoryModal');
+            if (categoryModal) {
+                categoryModal.remove();
+            }
+        }
+
+        // Add event listener for category button
+        addCategoryBtn.addEventListener('click', showCategoryModal);
+
+        // Close category modal when clicking outside
+        document.addEventListener('click', (e) => {
+            const categoryModal = document.getElementById('categoryModal');
+            if (categoryModal && e.target === categoryModal) {
+                closeCategoryModal();
+            }
+        });
     </script>
 </body>
 </html>
