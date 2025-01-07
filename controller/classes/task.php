@@ -56,21 +56,19 @@ class Task {
             return false;
         }
     }
-
-    // public function getAssignedMembers($taskId) {
-    //     try {
-    //         $conn = $this->db->getConnection();
-    //         $query = "SELECT u.* FROM users u 
-    //                  JOIN task_assignments ta ON u.id = ta.user_id 
-    //                  WHERE ta.task_id = :taskId";
-    //         $stmt = $conn->prepare($query);
-    //         $stmt->execute([':taskId' => $taskId]);
-    //         return $stmt->fetchAll(PDO::FETCH_ASSOC);
-    //     } catch (PDOException $e) {
-    //         echo $e->getMessage();
-    //         return [];
-    //     }
-    // }
+public static function getTaskByStatus($db, $status) {
+        $conn =  $db->getConnection();
+        $query = 'SELECT * FROM tasks WHERE status = :status';
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam('status', $status, PDO::PARAM_STR);
+        $stmt->execute(
+            [
+                'status'=> $status
+            ]
+        );
+        $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $tasks;
+}
 
     public function updateTask($title, $description, $priority, $dueDate){}
     public function updateStatus($status){}
