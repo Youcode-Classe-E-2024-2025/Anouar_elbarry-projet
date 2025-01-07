@@ -69,6 +69,28 @@ public static function getTaskByStatus($db, $status) {
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $tasks;
 }
+public static function getTaskMembers($db, $taskId, $projectId) {
+    $conn = $db->getConnection();
+    
+    $query = "
+            SELECT 
+            u.id,
+            u.username,
+            u.email,
+            u.role
+        FROM task_assignments ta
+        INNER JOIN users u ON ta.user_id = u.id
+        WHERE ta.task_id = :task_id 
+        AND ta.project_id = :project_id";
+
+    $stmt = $conn->prepare($query);
+    $stmt->execute([
+        'task_id' => $taskId,
+        'project_id' => $projectId
+    ]);
+
+    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+}
 
     public function updateTask($title, $description, $priority, $dueDate){}
     public function updateStatus($status){}
