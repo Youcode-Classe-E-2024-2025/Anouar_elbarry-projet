@@ -69,27 +69,43 @@ public static function getTaskByStatus($db, $status) {
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $tasks;
 }
+public static function getTaskById($db, $id) {
+        $conn =  $db->getConnection();
+        $query = 'SELECT * FROM tasks WHERE id = :id';
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam('id', $id, PDO::PARAM_STR);
+        $stmt->execute(
+            [
+                'id'=> $id
+            ]
+        );
+        $task = $stmt->fetch(PDO::FETCH_ASSOC);
+        return $task;
+}
 public static function getTaskMembers($db, $taskId, $projectId) {
     $conn = $db->getConnection();
     
-    $query = "
-            SELECT 
+    $query = "SELECT 
             u.id,
             u.username,
             u.email,
             u.role
-        FROM task_assignments ta
-        INNER JOIN users u ON ta.user_id = u.id
+        FROM users u
+        INNER JOIN task_assignments ta ON u.id = ta.user_id
         WHERE ta.task_id = :task_id 
         AND ta.project_id = :project_id";
 
-    $stmt = $conn->prepare($query);
-    $stmt->execute([
-        'task_id' => $taskId,
-        'project_id' => $projectId
-    ]);
-
-    return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    try {
+        $stmt = $conn->prepare($query);
+        $stmt->execute([
+            ':task_id' => $taskId,
+            ':project_id' => $projectId
+        ]);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error in getTaskMembers: " . $e->getMessage());
+        return [];
+    }
 }
 
     public function updateTask($title, $description, $priority, $dueDate){}
