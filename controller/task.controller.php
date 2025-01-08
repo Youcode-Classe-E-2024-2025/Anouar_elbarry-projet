@@ -14,7 +14,20 @@ $task = new Task();
 $db = new Database();
 $conn = $db->getConnection();
 $project_id = $_SESSION["project_id"];
-if($_SERVER['REQUEST_METHOD'] === 'POST') {
+
+// Handle status update request
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['action']) && $_POST['action'] === 'update_status') {
+    $taskId = $_POST['task_id'];
+    $newStatus = $_POST['new_status'];
+    
+    $result = $task->updateStatus($taskId, $newStatus);
+    
+    header('Content-Type: application/json');
+    echo json_encode(['success' => $result]);
+    exit();
+}
+
+if($_SERVER['REQUEST_METHOD'] === 'POST' && !isset($_POST['action'])) {
     $title = trim($_POST['title']);
     $description = trim($_POST['description']);
     $dueDate = trim($_POST['dueDate']);

@@ -56,7 +56,22 @@ class Task {
             return false;
         }
     }
-public static function getTaskByStatus($db, $status) {
+public static function getTaskByStatus($db, $status , $project_id) {
+        $conn =  $db->getConnection();
+        $query = 'SELECT * FROM tasks WHERE status = :status AND project_id = :project_id';
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam('status', $status, PDO::PARAM_STR);
+        $stmt->bindParam('project_id', $project_id, PDO::PARAM_STR);
+        $stmt->execute(
+            [
+                'status'=> $status,
+                'project_id'=> $project_id
+            ]
+        );
+        $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $tasks;
+}
+public static function getAllTasksByStatus($db, $status) {
         $conn =  $db->getConnection();
         $query = 'SELECT * FROM tasks WHERE status = :status';
         $stmt = $conn->prepare($query);

@@ -23,9 +23,9 @@ if (!$project) {
 $projectMembers = $user->getProjectMembers($project_id);
 $category = new Category();
 $categories = $category::getAll($db) ;
-$IN_progresstasks = Task::getTaskByStatus($db,'IN_PROGRESS');
-$TODOtasks = Task::getTaskByStatus($db,'TODO');
-$DONEtasks = Task::getTaskByStatus($db,'DONE');
+$IN_progresstasks = Task::getTaskByStatus($db,'IN_PROGRESS',$project_id);
+$TODOtasks = Task::getTaskByStatus($db,'TODO',$project_id);
+$DONEtasks = Task::getTaskByStatus($db,'DONE',$project_id);
 
 $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
 ?>
@@ -616,25 +616,7 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
             if (currentStatus === newStatus) return;
 
             // Update task status in the database
-            updateTaskStatus(taskId, newStatus).then(response => {
-                if (response.success) {
-                    // Move the task element to the new column
-                    ev.currentTarget.querySelector('.space-y-4').appendChild(taskElement);
-                    taskElement.setAttribute('data-current-status', newStatus);
-                    
-                    // Update task counts
-                    updateTaskCounts();
-                }
-            });
-        }
-
-        function updateTaskCounts() {
-            const columns = ['TODO', 'IN_PROGRESS', 'DONE'];
-            columns.forEach(status => {
-                const column = document.getElementById(status);
-                const count = column.querySelectorAll('[draggable="true"]').length;
-                column.querySelector('.text-sm').textContent = `${count} tasks`;
-            });
+            updateTaskStatus(taskId, newStatus);
         }
 
         async function updateTaskStatus(taskId, newStatus) {
@@ -649,22 +631,11 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                 
                 const data = await response.json();
                 if (data.success) {
-                    // Show success message
-                    const successAlert = document.createElement('div');
-                    successAlert.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50';
-                    successAlert.innerHTML = `
-                        <div class="flex items-center">
-                            <i class="fas fa-check-circle mr-2"></i>
-                            <span>Task status updated successfully</span>
-                        </div>
-                    `;
-                    document.body.appendChild(successAlert);
-                    setTimeout(() => successAlert.remove(), 3000);
+                    // Refresh the page after successful update
+                    window.location.reload();
                 }
-                return data;
             } catch (error) {
                 console.error('Error updating task status:', error);
-                return { success: false };
             }
         }
 
