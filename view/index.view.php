@@ -52,17 +52,17 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
     </div>
     <?php unset($_SESSION["successT"]); endif; ?>
 
-    <?php if(isset($_SESSION["error"])): ?>
+    <?php if(isset($_SESSION["errorT"])): ?>
     <div id="errorAlert" class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
         <div class="flex items-center">
             <i class="fas fa-exclamation-circle mr-2"></i>
-            <span><?php echo $_SESSION["error"]; ?></span>
+            <span><?php echo $_SESSION["errorT"]; ?></span>
             <button onclick="this.parentElement.parentElement.style.display='none'" class="ml-4">
                 <i class="fas fa-times"></i>
             </button>
         </div>
     </div>
-    <?php unset($_SESSION["error"]); endif; ?>
+    <?php unset($_SESSION["errorT"]); endif; ?>
     <!-- Navigation -->
     <nav class="bg-white shadow-sm">
         <div class="container mx-auto px-4 py-3">
@@ -75,7 +75,7 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                     <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Active</span>
                 </div>
                 <div class="flex items-center space-x-4">
-                    <button id="addCategoryBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition">
+                    <button id="addCategoryBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition" onclick="toggleCategoryModal()">
                         <i class="fas fa-folder-plus mr-2"></i>New Category
                     </button>
                     <button id="addTaskBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
@@ -90,6 +90,83 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
             </div>
         </div>
     </nav>
+
+    <!-- Category Modal -->
+    <div id="categoryModal" class="fixed inset-0 bg-gray-600 bg-opacity-50 hidden overflow-y-auto h-full w-full z-50 transition-opacity duration-300">
+        <div class="relative top-20 mx-auto p-8 border w-[500px] shadow-2xl rounded-xl bg-white transform transition-all duration-300 opacity-0 translate-y-4" id="modalContent">
+            <div class="flex justify-between items-center pb-6 border-b">
+                <div>
+                    <h3 class="text-2xl font-semibold text-gray-900">Create New Category</h3>
+                    <p class="mt-1 text-sm text-gray-500">Add a new category to organize your tasks</p>
+                </div>
+                <button onclick="toggleCategoryModal()" class="text-gray-400 hover:text-gray-500 hover:bg-gray-100 rounded-full p-2 transition-colors duration-200">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <form action="../controller/category.controller.php" method="POST" class="space-y-6 mt-6">
+                <div>
+                    <label for="categoryName" class="block text-sm font-medium text-gray-700">Category Name</label>
+                    <div class="mt-2 relative rounded-md shadow-sm">
+                        <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-folder text-gray-400"></i>
+                        </div>
+                        <input type="text" name="name" id="categoryName" required
+                            class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                            placeholder="Enter category name">
+                    </div>
+                </div>
+                <div>
+                    <label for="categoryDescription" class="block text-sm font-medium text-gray-700">Description</label>
+                    <div class="mt-2 relative rounded-md shadow-sm">
+                        <div class="absolute top-3 left-0 pl-3 flex items-center pointer-events-none">
+                            <i class="fas fa-align-left text-gray-400"></i>
+                        </div>
+                        <textarea name="description" id="categoryDescription" rows="4" required
+                            class="block w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors duration-200"
+                            placeholder="Enter category description"></textarea>
+                    </div>
+                </div>
+                <div class="flex justify-end space-x-4 pt-6 border-t">
+                    <button type="button" onclick="toggleCategoryModal()"
+                        class="px-6 py-3 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                        Cancel
+                    </button>
+                    <button type="submit"
+                        class="px-6 py-3 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
+                        Create Category
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        function toggleCategoryModal() {
+            const modal = document.getElementById('categoryModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            if (modal.classList.contains('hidden')) {
+                // Show modal
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('opacity-0', 'translate-y-4');
+                }, 10);
+            } else {
+                // Hide modal
+                modalContent.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
+            }
+        }
+
+        // Close modal when clicking outside
+        document.getElementById('categoryModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                toggleCategoryModal();
+            }
+        });
+    </script>
 
     <!-- Project Overview -->
     <div class="bg-white border-b">
@@ -153,14 +230,14 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                                 <?php endif; ?>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <button onclick="showTaskDetails(<?= $task['id'] ?>)" 
+                                <a href="components/task_details.php?task_id=<?= $task['id'] ?>"
                                         class="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors">
                                     <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="deleteTask(<?= $task['id'] ?>)"
+                                </a>
+                                <a  href="../../controller/task.controller.php?task_id=<?= $task['id'] ?>" 
                                         class="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors">
                                     <i class="fas fa-trash-alt"></i>
-                                </button>
+                                </a>
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>
@@ -221,14 +298,14 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                                 <?php endif; ?>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <button onclick="showTaskDetails(<?= $task['id'] ?>)" 
+                                <a  href="components/task_details.php?task_id=<?= $task['id'] ?>"
                                         class="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors">
                                     <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="deleteTask(<?= $task['id'] ?>)"
+                                </a>
+                                <a href="../../controller/task.controller.php?task_id=<?= $task['id'] ?>" 
                                         class="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors">
                                     <i class="fas fa-trash-alt"></i>
-                                </button>
+                                </a>
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>
@@ -288,14 +365,14 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                                 <?php endif; ?>
                             </div>
                             <div class="flex items-center space-x-2">
-                                <button onclick="showTaskDetails(<?= $task['id'] ?>)" 
+                                <a href="components/task_details.php?task_id=<?= $task['id'] ?>"
                                         class="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors">
                                     <i class="fas fa-eye"></i>
-                                </button>
-                                <button onclick="deleteTask(<?= $task['id'] ?>)"
+                                </a>
+                                <a href="../../controller/task.controller.php?task_id=<?= $task['id'] ?>" 
                                         class="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors">
                                     <i class="fas fa-trash-alt"></i>
-                                </button>
+                                </a>
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>
@@ -443,10 +520,10 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6 pt-4 border-t">
-                    <button type="button" onclick="closeTaskModal()" class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors duration-200">
+                    <button type="button" onclick="closeTaskModal()" class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
                         Cancel
                     </button>
-                    <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors duration-200">
+                    <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
                         Create Task
                     </button>
                 </div>
@@ -509,6 +586,7 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                 newCategoryBtn.classList.remove('bg-gray-200');
             }
         }
+
         // Auto-hide success/error messages after 5 seconds
         setTimeout(() => {
             const successAlert = document.getElementById('successAlert');
@@ -518,64 +596,30 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
         }, 5000);
 
         // Category Modal Functions
-        function showCategoryModal() {
-            // Create the modal HTML
-            const modalHTML = `
-                <div id="categoryModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-                    <div class="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
-                        <div class="flex justify-between items-center mb-4">
-                            <h3 class="text-lg font-semibold">Create New Category</h3>
-                            <button onclick="closeCategoryModal()" class="text-gray-500 hover:text-gray-700">
-                                <i class="fas fa-times"></i>
-                            </button>
-                        </div>
-                        <form action="../controller/category.controller.php" method="POST" class="space-y-4">
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Category Name</label>
-                                <input type="text" name="name" required
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter category name">
-                            </div>
-                            <div>
-                                <label class="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                                <textarea name="description" rows="3"
-                                    class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    placeholder="Enter category description"></textarea>
-                            </div>
-                            <div class="flex justify-end gap-3 pt-4">
-                                <button type="button" onclick="closeCategoryModal()"
-                                    class="px-4 py-2 text-gray-700 bg-gray-100 rounded-md hover:bg-gray-200">
-                                    Cancel
-                                </button>
-                                <button type="submit"
-                                    class="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600">
-                                    Create Category
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            `;
-
-            // Add the modal to the document
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-        }
-
-        function closeCategoryModal() {
-            const categoryModal = document.getElementById('categoryModal');
-            if (categoryModal) {
-                categoryModal.remove();
+        function toggleCategoryModal() {
+            const modal = document.getElementById('categoryModal');
+            const modalContent = document.getElementById('modalContent');
+            
+            if (modal.classList.contains('hidden')) {
+                // Show modal
+                modal.classList.remove('hidden');
+                setTimeout(() => {
+                    modalContent.classList.remove('opacity-0', 'translate-y-4');
+                }, 10);
+            } else {
+                // Hide modal
+                modalContent.classList.add('opacity-0', 'translate-y-4');
+                setTimeout(() => {
+                    modal.classList.add('hidden');
+                }, 300);
             }
         }
 
-        // Add event listener for category button
-        addCategoryBtn.addEventListener('click', showCategoryModal);
-
-        // Close category modal when clicking outside
+        // Close task details modal when clicking outside
         document.addEventListener('click', (e) => {
-            const categoryModal = document.getElementById('categoryModal');
-            if (categoryModal && e.target === categoryModal) {
-                closeCategoryModal();
+            const taskDetailsModal = document.getElementById('taskDetailsModal');
+            if (taskDetailsModal && e.target === taskDetailsModal) {
+                closeTaskDetailsModal();
             }
         });
     </script>
