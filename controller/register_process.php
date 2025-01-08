@@ -11,9 +11,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $password = $_POST['password'];
 
         // Create user instance
-        $user = new User($username, $email);
+        $user = new User($username, $email, $password);
         // Attempt registration
-        $result = $user->regester($username, $email, $password);
+        $result = $user->register($password);
         
         if ($result) {
             // Successful registration

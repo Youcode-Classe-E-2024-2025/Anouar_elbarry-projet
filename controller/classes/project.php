@@ -39,19 +39,20 @@ class Project {
         }
     }
     public function addMember(){}
-    public function removeMember($project_id,$db){
+    public static function removeMember($user_id,$project_id,$db){
         try {
             $conn = $db->getConnection();
-            $query = "DELETE FROM team WHERE id = :project_id";
+            $query = "DELETE FROM team_members WHERE user_id = :user_id AND project_id = :project_id";
             $stmt = $conn->prepare($query);
+            $stmt->bindParam("user_id", $user_id, PDO::PARAM_INT);
             $stmt->bindParam("project_id", $project_id, PDO::PARAM_INT);
             return $stmt->execute([
+                "user_id" => $user_id,
                 "project_id" => $project_id
             ]);
         } catch (PDOException $e) {
-            // Log the error
-            error_log("Failed to delete project: " . $e->getMessage());
-            // You can throw a custom exception or return false
+            error_log("Failed to delete member: " . $e->getMessage());
+            
             return false;
         }
     }

@@ -1,7 +1,6 @@
 CREATE DATABASE ProTask ;
 
 
-
 CREATE TABLE users (
     id int AUTO_INCREMENT PRIMARY KEY,
     username VARCHAR(50) NOT NULL,
@@ -38,16 +37,12 @@ CREATE TABLE categories (
     description TEXT
 );
 
-CREATE TABLE tags (
-    id INT PRIMARY KEY AUTO_INCREMENT,
-    name VARCHAR(50) NOT NULL,
-    color VARCHAR(50) NOT NULL
-);
 
 CREATE TABLE tasks (
     id INT PRIMARY KEY AUTO_INCREMENT,
     title VARCHAR(100) NOT NULL,
     description TEXT,
+    tag VARCHAR(100) NOT NULL,
     status ENUM('TODO', 'IN_PROGRESS', 'DONE') NOT NULL DEFAULT 'TODO',
     priority ENUM('LOW', 'MEDIUM', 'HIGH') NOT NULL,
     dueDate DATE,
@@ -58,19 +53,12 @@ CREATE TABLE tasks (
     FOREIGN KEY (category_id) REFERENCES categories(id)
 );
 
-CREATE TABLE task_tags (
+CREATE TABLE task_assignments (
     task_id INT NOT NULL,
-    tag_id INT NOT NULL,
-    PRIMARY KEY (task_id, tag_id),
-    FOREIGN KEY (task_id) REFERENCES tasks(id),
-    FOREIGN KEY (tag_id) REFERENCES tags(id)
-);
-
-    CREATE TABLE task_members (
-    task_id INT,
-    user_id INT,
-    assigned_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    user_id INT NOT NULL,
+    project_id INT NOT NULL,
     PRIMARY KEY (task_id, user_id),
-    FOREIGN KEY (task_id) REFERENCES tasks(id) ON DELETE CASCADE,
-    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+    FOREIGN KEY (task_id) REFERENCES tasks(id),
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (project_id) REFERENCES projects(id)
 );

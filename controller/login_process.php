@@ -30,7 +30,7 @@ $db->getConnection();
         }
         else{
            
-            echo 'user not found';
+           header('location: ../view/error/404.php');
         }
         
     }

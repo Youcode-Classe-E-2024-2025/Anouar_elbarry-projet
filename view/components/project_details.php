@@ -165,7 +165,7 @@ $projectMembers = $user->getProjectMembers($project_id);
                     <!-- Action Buttons -->
                     <div class="bg-white p-6 rounded-xl shadow-sm">
                         <div class="space-y-4">
-                            <a href="tasks.php" class="flex items-center justify-center w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
+                            <a href="./../index.view.php?project_id=<?= $project['id'] ?>" class="flex items-center justify-center w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
                                 <i class="fas fa-tasks mr-2"></i>View Tasks
                             </a>
                             <button class="flex items-center justify-center w-full px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200">

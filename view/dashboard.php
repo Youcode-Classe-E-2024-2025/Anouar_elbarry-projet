@@ -12,7 +12,7 @@ if (!isset($_SESSION['userid'])) {
     exit();
 }
 $db = new Database();
-$DONEtasks = Task::getAllTasksByStatus($db,'DONE');
+$DONEtasks = Task::getAllTaskByStatus($db,'DONE');
 // Initialize user object
 $user = new User($_SESSION['username'], $_SESSION['email']);
 $user->setId($_SESSION['userid']);
@@ -224,7 +224,7 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">Completed Tasks</h3>
-                            <p class="text-2xl font-semibold"><?= count($DONEtasks) ?></p>
+                            <p class="text-2xl font-semibold">5</p>
                         </div>
                     </div>
                 </div>

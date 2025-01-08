@@ -272,4 +272,86 @@ class User {
     public function getRole(){
         return $this->role;
     }
+
+    public function getAllTeamMembers() {
+        try {
+            $sql = "SELECT * FROM users WHERE role IN ('TEAM_MEMBER', 'PROJECT_MANAGER') ORDER BY username";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error getting team members: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function getMemberProjects($memberId) {
+        try {
+            $sql = "SELECT DISTINCT p.* FROM projects p 
+                   JOIN project_members pm ON p.id = pm.project_id 
+                   WHERE pm.user_id = :member_id";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->bindParam(':member_id', $memberId);
+            $stmt->execute();
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error getting member projects: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public function addTeamMember($email, $role) {
+        try {
+            // First check if user exists
+            $sql = "SELECT id FROM users WHERE email = :email";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->bindParam(':email', $email);
+            $stmt->execute();
+            
+            if ($user = $stmt->fetch(PDO::FETCH_ASSOC)) {
+                // Update existing user's role
+                $sql = "UPDATE users SET role = :role WHERE id = :id";
+                $stmt = $this->db->getConnection()->prepare($sql);
+                $stmt->bindParam(':role', $role);
+                $stmt->bindParam(':id', $user['id']);
+                return $stmt->execute();
+            }
+            return false;
+        } catch (PDOException $e) {
+            error_log("Error adding team member: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function removeTeamMember($memberId) {
+        try {
+            // First remove from all projects
+            $sql = "DELETE FROM project_members WHERE user_id = :member_id";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->bindParam(':member_id', $memberId);
+            $stmt->execute();
+            
+            // Then update user role to regular user
+            $sql = "UPDATE users SET role = 'USER' WHERE id = :member_id";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->bindParam(':member_id', $memberId);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log("Error removing team member: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public function updateMemberRole($memberId, $newRole) {
+        try {
+            $sql = "UPDATE users SET role = :role WHERE id = :id";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->bindParam(':role', $newRole);
+            $stmt->bindParam(':id', $memberId);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log("Error updating member role: " . $e->getMessage());
+            return false;
+        }
+    }
 }

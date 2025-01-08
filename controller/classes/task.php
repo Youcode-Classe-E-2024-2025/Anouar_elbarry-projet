@@ -56,7 +56,7 @@ class Task {
             return false;
         }
     }
-public static function getTaskByStatus($db, $status , $project_id) {
+public static function getTaskByStatus($db, $status, $project_id) {
         $conn =  $db->getConnection();
         $query = 'SELECT * FROM tasks WHERE status = :status AND project_id = :project_id';
         $stmt = $conn->prepare($query);
@@ -71,7 +71,7 @@ public static function getTaskByStatus($db, $status , $project_id) {
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $tasks;
 }
-public static function getAllTasksByStatus($db, $status) {
+public static function getAllTaskByStatus($db, $status) {
         $conn =  $db->getConnection();
         $query = 'SELECT * FROM tasks WHERE status = :status';
         $stmt = $conn->prepare($query);

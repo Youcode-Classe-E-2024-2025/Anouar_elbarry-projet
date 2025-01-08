@@ -40,7 +40,7 @@ if (!isset($user)) {
                     <?php 
                     $allUsers = User::getUsers();
                     foreach($allUsers as $member): 
-                        if($member['id'] != $_SESSION['userid']): // Don't show current user
+                        if(($member['id'] != $_SESSION['userid']) && $member['role'] == "TEAM_MEMBER"):
                     ?>
                     <div class="flex items-center justify-between py-1.5 border-b last:border-0">
                         <div class="flex items-center space-x-2">

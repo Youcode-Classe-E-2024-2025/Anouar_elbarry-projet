@@ -125,7 +125,7 @@ if($_SERVER['REQUEST_METHOD'] == 'GET' && $_GET['action'] === 'delet_member'){
     $project = Project::removeMember($member_id,$project_id, $db );
     if(isset($project)){
         // echo'member have been removed sucessfuly';
-        $_SESSION['success'] = 'member have been removed sucessfuly';
+        $_SESSION['successD'] = 'member have been removed sucessfuly';
         header('Location: ../view/components/project_details.php?project_id=' . $project_id);
     }
 }
