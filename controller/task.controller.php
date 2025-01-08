@@ -32,11 +32,7 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     // Get assigned members array from checkboxes
     $assignedMembers = [];
     if (isset($_POST['assignedTo']) && is_array($_POST['assignedTo'])) {
-        foreach ($_POST['assignedTo'] as $memberId) {
-            if (is_numeric($memberId)) {
-                $assignedMembers[] = (int)$memberId;
-            }
-        }
+        $assignedMembers = array_map('intval', $_POST['assignedTo']);
     }
 
     // Create task
@@ -53,10 +49,30 @@ if($_SERVER['REQUEST_METHOD'] === 'POST') {
     );
 
     if ($Task_id) {
-        header('Location: ../view/index.view.php?success=task_created');
+        $_SESSION['successT'] = 'task created seccessfuly ';
+        header('Location: ../view/index.view.php?project_id=' . $project_id);
         exit();
     } else {
-        header('Location: ../view/index.view.php?error=task_creation_failed');
+        $_SESSION['errorT'] = 'task created seccessfuly ';
+        header('Location: ../view/index.view.php?project_id=' . $project_id);
         exit();
     }
+}
+if($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['task_id'])){
+    $taskID = $_GET['task_id'];
+    $project_id = $_SESSION['project_id'];
+    
+    error_log("Attempting to delete task ID: " . $taskID . " from project: " . $project_id);
+    
+    $result = Task::deletTask($taskID, $db, $project_id);
+    error_log("Delete result: " . ($result ? "success" : "failed"));
+    
+    if($result){
+        $_SESSION['successT'] = 'Task deleted successfully';
+        header('Location: ../view/index.view.php?project_id=' . $project_id);
+    } else {
+        $_SESSION['errorT'] = 'Failed to delete task';
+        header('Location: ../view/index.view.php?project_id=' . $project_id);
+    }
+    exit();
 }
