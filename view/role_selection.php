@@ -14,7 +14,7 @@
             <p class="text-gray-600">Select the role that best matches your responsibilities</p>
         </div>
 
-        <form action="../controller/role_selection.php" method="POST">
+        <form action="../controller/select_role.controller.php" name="select_role" method="POST">
             <div class="grid md:grid-cols-2 gap-6">
                 <!-- Team Member Card -->
                 <div class="relative">
