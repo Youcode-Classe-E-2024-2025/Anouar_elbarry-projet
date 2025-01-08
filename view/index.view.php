@@ -75,12 +75,16 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                     <span class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm">Active</span>
                 </div>
                 <div class="flex items-center space-x-4">
+                <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                     <button id="addCategoryBtn" class="bg-gray-500 text-white px-4 py-2 rounded-lg hover:bg-gray-600 transition" onclick="toggleCategoryModal()">
                         <i class="fas fa-folder-plus mr-2"></i>New Category
                     </button>
+                    <?php endif ?>
+                    <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                     <button id="addTaskBtn" class="bg-blue-500 text-white px-4 py-2 rounded-lg hover:bg-blue-600 transition">
                         <i class="fas fa-plus mr-2"></i>New Task
                     </button>
+                    <?php endif ?>
                     <div class="relative">
                         <button class="text-gray-600 hover:text-gray-800">
                             <i class="fas fa-ellipsis-v"></i>
@@ -239,10 +243,12 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                                         class="p-1.5 text-gray-500 hover:text-blue-600 rounded-full hover:bg-blue-50 transition-colors">
                                     <i class="fas fa-eye"></i>
                                 </a>
+                                <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                                 <a  href="../../controller/task.controller.php?task_id=<?= $task['id'] ?>" 
                                         class="p-1.5 text-gray-500 hover:text-red-600 rounded-full hover:bg-red-50 transition-colors">
                                     <i class="fas fa-trash-alt"></i>
                                 </a>
+                                <?php endif ?>
                             </div>
                         </div>
                         <p class="text-sm text-gray-600 mb-3"><?= $task['description'] ?></p>

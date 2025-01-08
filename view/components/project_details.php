@@ -1,5 +1,7 @@
 <?php 
 require_once __DIR__ ."/../../controller/classes/user.php";
+require_once __DIR__ ."/../../controller/classes/task.php";
+require_once __DIR__ ."/../../controller/classes/configDB.php";
 session_start();
 $user = new User($_SESSION['username'], $_SESSION['email']);
 $user->setId($_SESSION['userid']);
@@ -7,6 +9,12 @@ if($_SERVER['REQUEST_METHOD'] === 'GET') {
     $project_id  = $_GET['project_id'] ;
     // $_SESSION['project_id']  = $project_id;
 }
+$db = new Database();
+$IN_progresstasks = Task::getTaskByStatus($db,'IN_PROGRESS',$project_id);
+$TODOtasks = Task::getTaskByStatus($db,'TODO',$project_id);
+$DONEtasks = Task::getTaskByStatus($db,'DONE',$project_id);
+$AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
+
 $project = $user->getProjectById($project_id);
 $projectMembers = $user->getProjectMembers($project_id);
 ?>
@@ -88,15 +96,15 @@ $projectMembers = $user->getProjectMembers($project_id);
                             </div>
                             <div class="grid grid-cols-3 gap-4">
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold text-blue-600">10</div>
+                                    <div class="text-2xl font-bold text-blue-600"><?= $AllTasks?></div>
                                     <div class="text-gray-600">Total Tasks</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold text-green-600">6</div>
+                                    <div class="text-2xl font-bold text-green-600"><?= count($DONEtasks) ?></div>
                                     <div class="text-gray-600">Completed</div>
                                 </div>
                                 <div class="text-center">
-                                    <div class="text-2xl font-bold text-yellow-600">4</div>
+                                    <div class="text-2xl font-bold text-yellow-600"><?= count($IN_progresstasks) ?></div>
                                     <div class="text-gray-600">In Progress</div>
                                 </div>
                             </div>
@@ -120,11 +128,13 @@ $projectMembers = $user->getProjectMembers($project_id);
                                         <div class="text-gray-500 text-sm"><?= $projectMember["email"] ?></div>
                                     </div>
                                 </div>
+                                <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                                 <?php  if ($projectMember["role"] === "TEAM_MEMBER" ):?>
                                 <a href="./../../controller/project.controller.php?action=delet_member&member_id=<?= $projectMember["id"] ?>&project_id=<?= $project_id ?>" class="inline-flex items-center px-3 py-2 text-sm font-medium text-red-600 hover:text-white border border-red-600 hover:bg-red-600 rounded-md transition-colors duration-300">
                                     <i class="fas fa-user-minus mr-1"></i>
                                     Remove
                                 </a>
+                                <?php endif ?>
                                 <?php endif ?>
                             </div>
                             <?php endforeach ?>
@@ -168,12 +178,16 @@ $projectMembers = $user->getProjectMembers($project_id);
                             <a href="./../index.view.php?project_id=<?= $project['id'] ?>" class="flex items-center justify-center w-full px-6 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200">
                                 <i class="fas fa-tasks mr-2"></i>View Tasks
                             </a>
+                            <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                             <button class="flex items-center justify-center w-full px-6 py-3 text-blue-600 hover:bg-blue-50 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-edit mr-2"></i>Edit Project
                             </button>
+                            <?php endif?>
+                            <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                             <a href="./../../controller/project.controller.php?action=delet&project_id=<?= $project_id ?>" class="flex items-center justify-center w-full px-6 py-3 text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200">
                                 <i class="fas fa-trash-alt mr-2"></i>Delete Project
                             </a>
+                            <?php endif?>
                         </div>
                     </div>
                 </div>

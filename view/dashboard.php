@@ -94,13 +94,6 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                             <i class="fas fa-project-diagram mr-3"></i>My Projects
                         </a>
                     </li>
-                    <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
-                    <li>
-                        <a href="index.view.php" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
-                            <i class="fas fa-tasks mr-3"></i>My Tasks
-                        </a>
-                    </li>
-                    <?php endif; ?>
                     <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                     <li>
                         <a href="#team-management" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">

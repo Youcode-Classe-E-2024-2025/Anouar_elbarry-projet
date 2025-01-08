@@ -82,12 +82,14 @@ $taskMembers = Task::getTaskMembers($db,$task_id,$project_id);
                         <h1 class="text-3xl font-bold text-gray-900"><?= $task['title'] ?></h1>
                     </div>
                     <div class="flex items-center space-x-4">
+                    <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                         <button class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                             <i class="fas fa-edit mr-2"></i> Edit
                         </button>
                         <a href="../../controller/task.controller.php?task_id=<?= $task['id'] ?>" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
                             <i class="fas fa-trash mr-2"></i> Delete
                         </a>
+                        <?php endif ?>
                     </div>
                 </div>
             </div>
