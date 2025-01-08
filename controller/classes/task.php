@@ -110,7 +110,36 @@ public static function getTaskMembers($db, $taskId, $projectId) {
 
     public function updateTask($title, $description, $priority, $dueDate){}
     public function updateStatus($status){}
-    public function deletTask(){}
+    public static function deletTask($taskId, $db, $projectId){
+        $conn = $db->getConnection();
+        
+        // First delete from task_assignments
+        $deleteAssignments = "DELETE FROM task_assignments WHERE task_id = :taskId AND project_id = :projectId";
+        try {
+            $stmt = $conn->prepare($deleteAssignments);
+            $stmt->execute([
+                ':taskId' => $taskId,
+                ':projectId' => $projectId
+            ]);
+        } catch (PDOException $e) {
+            error_log("Failed to delete task assignments: " . $e->getMessage());
+            return false;
+        }
+        
+        // Then delete the task
+        $deleteTask = "DELETE FROM tasks WHERE id = :taskId AND project_id = :projectId";
+        try {
+            $stmt = $conn->prepare($deleteTask);
+            $stmt->execute([
+                ':taskId' => $taskId,
+                ':projectId' => $projectId
+            ]);
+            return $stmt->rowCount() > 0;
+        } catch (PDOException $e) {
+            error_log("Failed to delete task: " . $e->getMessage());
+            return false;
+        }
+    }
     public function addTag(){}
     public function removeTag(){}
 }
