@@ -38,6 +38,30 @@ $taskMembers = Task::getTaskMembers($db,$task_id,$project_id);
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css" rel="stylesheet">
 </head>
 <body class="bg-gray-50">
+     <!-- Success/Error Messages -->
+     <?php if(isset($_SESSION["success"])): ?>
+    <div id="successAlert" class="fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50">
+        <div class="flex items-center">
+            <i class="fas fa-check-circle mr-2"></i>
+            <span><?php echo $_SESSION["success"]; ?></span>
+            <button onclick="this.parentElement.parentElement.style.display='none'" class="ml-4">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <?php unset($_SESSION["successTD"]); endif; ?>
+
+    <?php if(isset($_SESSION["errorTD"])): ?>
+    <div id="errorAlert" class="fixed top-4 right-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded z-50">
+        <div class="flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            <span><?php echo $_SESSION["error"]; ?></span>
+            <button onclick="this.parentElement.parentElement.style.display='none'" class="ml-4">
+                <i class="fas fa-times"></i>
+            </button>
+        </div>
+    </div>
+    <?php unset($_SESSION["error"]); endif; ?>
     <div class="min-h-screen py-8">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
             <!-- Back Button -->
@@ -61,9 +85,9 @@ $taskMembers = Task::getTaskMembers($db,$task_id,$project_id);
                         <button class="inline-flex items-center px-4 py-2 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-md hover:bg-gray-50">
                             <i class="fas fa-edit mr-2"></i> Edit
                         </button>
-                        <button class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
+                        <a href="../../controller/task.controller.php?task_id=<?= $task['id'] ?>" class="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-red-600 rounded-md hover:bg-red-700">
                             <i class="fas fa-trash mr-2"></i> Delete
-                        </button>
+                        </a>
                     </div>
                 </div>
             </div>
