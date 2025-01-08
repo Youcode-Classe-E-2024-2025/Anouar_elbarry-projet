@@ -109,7 +109,18 @@ public static function getTaskMembers($db, $taskId, $projectId) {
 }
 
     public function updateTask($title, $description, $priority, $dueDate){}
-    public function updateStatus($status){}
+    public function updateStatus($taskId, $newStatus) {
+        try {
+            $sql = "UPDATE tasks SET status = :status WHERE id = :id";
+            $stmt = $this->db->getConnection()->prepare($sql);
+            $stmt->bindParam(':status', $newStatus);
+            $stmt->bindParam(':id', $taskId);
+            return $stmt->execute();
+        } catch (PDOException $e) {
+            error_log("Error updating task status: " . $e->getMessage());
+            return false;
+        }
+    }
     public static function deletTask($taskId, $db, $projectId){
         $conn = $db->getConnection();
         

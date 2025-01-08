@@ -169,7 +169,7 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
     </script>
 
     <!-- Project Overview -->
-    <div class="bg-white border-b">
+<div class="bg-white border-b">
         <div class="container mx-auto px-4 py-6">
             <div class="flex justify-between items-start">
                 <div class="space-y-2">
@@ -190,14 +190,14 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                 </div>
             </div>
         </div>
-    </div>
+</div>
 
     <!-- Main Content -->
     <main class="container mx-auto px-4 py-8">
         <!-- Task Board -->
         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
             <!-- To Do Column -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4" id="TODO" ondrop="drop(event)" ondragover="allowDrop(event)">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-semibold text-gray-800">To Do</h2>
                     <span class="text-sm text-gray-500"><?= count($TODOtasks)?> tasks</span>
@@ -214,7 +214,12 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                                     default => 'bg-gray-500'
                                 };
                             ?>
-                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
+                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-move" 
+                         draggable="true" 
+                         ondragstart="drag(event)" 
+                         id="task-<?= $task['id'] ?>"
+                         data-task-id="<?= $task['id'] ?>"
+                         data-current-status="TODO">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex flex-col">
                                 <div class="flex items-center gap-2">
@@ -266,7 +271,7 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
             </div>
 
             <!-- In Progress Column -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4" id="IN_PROGRESS" ondrop="drop(event)" ondragover="allowDrop(event)">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-semibold text-gray-800">In Progress</h2>
                     <span class="text-sm text-gray-500"><?= count($IN_progresstasks)?> Tasks</span>
@@ -282,7 +287,12 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                                     default => 'bg-gray-500'
                                 };
                             ?>
-                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
+                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-move" 
+                         draggable="true" 
+                         ondragstart="drag(event)" 
+                         id="task-<?= $task['id'] ?>"
+                         data-task-id="<?= $task['id'] ?>"
+                         data-current-status="IN_PROGRESS">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex flex-col">
                                 <div class="flex items-center gap-2">
@@ -333,7 +343,7 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                 </div>
             </div>
             <!-- Done Column -->
-            <div class="bg-gray-50 rounded-lg p-4">
+            <div class="bg-gray-50 rounded-lg p-4" id="DONE" ondrop="drop(event)" ondragover="allowDrop(event)">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-semibold text-gray-800">Done</h2>
                     <span class="text-sm text-gray-500"><?= count($DONEtasks)?> tasks</span>
@@ -349,7 +359,12 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                                     default => 'bg-gray-500'
                                 };
                             ?>
-                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-pointer">
+                    <div class="bg-white rounded-lg p-4 shadow-sm hover:shadow-md transition cursor-move" 
+                         draggable="true" 
+                         ondragstart="drag(event)" 
+                         id="task-<?= $task['id'] ?>"
+                         data-task-id="<?= $task['id'] ?>"
+                         data-current-status="DONE">
                         <div class="flex justify-between items-start mb-3">
                             <div class="flex flex-col">
                                 <div class="flex items-center gap-2">
@@ -404,10 +419,10 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
 
     <!-- Task Modal -->
     <div id="taskModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50 transition-opacity duration-300">
-        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-5xl mx-4 transform transition-all duration-300 scale-95 opacity-0" id="modalContent">
+        <div class="bg-white rounded-xl shadow-2xl p-8 w-full max-w-5xl mx-4 transform transition-all duration-300 scale-95 opacity-0" id="taskModalContent">
             <div class="flex justify-between items-center mb-6">
                 <h3 class="text-2xl font-semibold text-gray-900">Create New Task</h3>
-                <button onclick="closeTaskModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
+                <button onclick="toggleTaskModal()" class="text-gray-400 hover:text-gray-600 transition-colors duration-200">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                     </svg>
@@ -451,12 +466,6 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                                     <option value="<?= $category['name'] ?>"><?= $category['name'] ?></option>
                                 <?php endforeach ?>
                                 </select>
-                                <button type="button" id="newCategoryBtn" onclick="toggleNewCategoryInput()" class="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 transition-colors duration-200 flex items-center">
-                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path>
-                                    </svg>
-                                    New
-                                </button>
                             </div>
                             <!-- New Category Input (Hidden by default) -->
                             <div id="newCategoryInput" class="hidden mt-2">
@@ -489,8 +498,8 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                             <label class="block text-gray-700 mb-1 text-sm">Assign Team Members</label>
                             <div class="border rounded-lg p-3 max-h-48 overflow-y-auto">
                             <?php 
-                    $allUsers = User::getUsers();
-                    foreach($allUsers as $member):
+                    
+                    foreach($projectMembers as $member):
                         if(($member['id'] != $_SESSION['userid']) && $member['role'] == "TEAM_MEMBER"):
                     ?>
                                 <div class="flex items-center justify-between py-1.5 border-b">
@@ -520,7 +529,7 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                     </div>
                 </div>
                 <div class="flex justify-end gap-3 mt-6 pt-4 border-t">
-                    <button type="button" onclick="closeTaskModal()" class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
+                    <button type="button" onclick="toggleTaskModal()" class="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition-colors duration-200">
                         Cancel
                     </button>
                     <button type="submit" class="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition-colors duration-200">
@@ -532,95 +541,140 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
     </div>
 
     <script>
-        // Get DOM elements
-        const taskModal = document.getElementById('taskModal');
-        const modalContent = document.getElementById('modalContent');
-        const addTaskBtn = document.getElementById('addTaskBtn');
-        const addCategoryBtn = document.getElementById('addCategoryBtn');
-
-        // Show modal with animation
-        function showTaskModal() {
-            taskModal.classList.remove('hidden');
-            taskModal.classList.add('flex');
-            // Trigger animation after a small delay
-            setTimeout(() => {
-                modalContent.classList.remove('scale-95', 'opacity-0');
-                modalContent.classList.add('scale-100', 'opacity-100');
-            }, 50);
-        }
-
-        // Close modal with animation
-        function closeTaskModal() {
-            modalContent.classList.remove('scale-100', 'opacity-100');
-            modalContent.classList.add('scale-95', 'opacity-0');
-            // Wait for animation to finish before hiding
-            setTimeout(() => {
-                taskModal.classList.remove('flex');
-                taskModal.classList.add('hidden');
-            }, 300);
-        }
-
-        // Show modal
-        addTaskBtn.addEventListener('click', showTaskModal);
-
-        // Close modal when clicking outside
-        taskModal.addEventListener('click', (e) => {
-            if (e.target === taskModal) {
-                closeTaskModal();
-            }
-        });
-
-        // Toggle new category input visibility
-        function toggleNewCategoryInput() {
-            const newCategoryInput = document.getElementById('newCategoryInput');
-            const newCategoryBtn = document.getElementById('newCategoryBtn');
-            const isHidden = newCategoryInput.classList.contains('hidden');
-            
-            if (isHidden) {
-                newCategoryInput.classList.remove('hidden');
-                document.getElementById('newCategory').focus();
-                newCategoryBtn.classList.add('bg-gray-200');
-            } else {
-                newCategoryInput.classList.add('hidden');
-                document.getElementById('newCategory').value = '';
-                newCategoryBtn.classList.remove('bg-gray-200');
-            }
-        }
-
-        // Auto-hide success/error messages after 5 seconds
-        setTimeout(() => {
-            const successAlert = document.getElementById('successAlert');
-            const errorAlert = document.getElementById('errorAlert');
-            if (successAlert) successAlert.style.display = 'none';
-            if (errorAlert) errorAlert.style.display = 'none';
-        }, 5000);
-
-        // Category Modal Functions
-        function toggleCategoryModal() {
-            const modal = document.getElementById('categoryModal');
-            const modalContent = document.getElementById('modalContent');
+        // Task Modal Functions
+        function toggleTaskModal() {
+            const modal = document.getElementById('taskModal');
+            const modalContent = document.getElementById('taskModalContent');
             
             if (modal.classList.contains('hidden')) {
-                // Show modal
                 modal.classList.remove('hidden');
+                modal.style.display = 'flex'; 
                 setTimeout(() => {
                     modalContent.classList.remove('opacity-0', 'translate-y-4');
                 }, 10);
             } else {
-                // Hide modal
                 modalContent.classList.add('opacity-0', 'translate-y-4');
                 setTimeout(() => {
                     modal.classList.add('hidden');
+                    modal.style.display = 'none'; 
                 }, 300);
             }
         }
 
-        // Close task details modal when clicking outside
-        document.addEventListener('click', (e) => {
-            const taskDetailsModal = document.getElementById('taskDetailsModal');
-            if (taskDetailsModal && e.target === taskDetailsModal) {
-                closeTaskDetailsModal();
+        // Make sure this runs after DOM is loaded
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add click event listener to the add task button
+            const addTaskBtn = document.getElementById('addTaskBtn');
+            if (addTaskBtn) {
+                addTaskBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    console.log('Add task button clicked'); 
+                    toggleTaskModal();
+                });
             }
+
+            // Close modal when clicking outside
+            const taskModal = document.getElementById('taskModal');
+            if (taskModal) {
+                taskModal.addEventListener('click', function(e) {
+                    if (e.target === this) {
+                        toggleTaskModal();
+                    }
+                });
+            }
+        });
+    </script>
+
+    <script>
+        // Drag and Drop Functions
+        function allowDrop(ev) {
+            ev.preventDefault();
+            // Add visual feedback for drop target
+            ev.currentTarget.classList.add('bg-gray-100');
+        }
+
+        function drag(ev) {
+            ev.dataTransfer.setData("taskId", ev.target.getAttribute("data-task-id"));
+            ev.dataTransfer.setData("currentStatus", ev.target.getAttribute("data-current-status"));
+            
+            // Add dragging style
+            ev.target.classList.add('opacity-50');
+        }
+
+        function drop(ev) {
+            ev.preventDefault();
+            const taskId = ev.dataTransfer.getData("taskId");
+            const currentStatus = ev.dataTransfer.getData("currentStatus");
+            const newStatus = ev.currentTarget.id;
+            const taskElement = document.getElementById(`task-${taskId}`);
+            
+            // Remove visual feedback
+            document.querySelectorAll('.bg-gray-100').forEach(el => el.classList.remove('bg-gray-100'));
+            taskElement.classList.remove('opacity-50');
+
+            // Don't do anything if dropped in the same column
+            if (currentStatus === newStatus) return;
+
+            // Update task status in the database
+            updateTaskStatus(taskId, newStatus).then(response => {
+                if (response.success) {
+                    // Move the task element to the new column
+                    ev.currentTarget.querySelector('.space-y-4').appendChild(taskElement);
+                    taskElement.setAttribute('data-current-status', newStatus);
+                    
+                    // Update task counts
+                    updateTaskCounts();
+                }
+            });
+        }
+
+        function updateTaskCounts() {
+            const columns = ['TODO', 'IN_PROGRESS', 'DONE'];
+            columns.forEach(status => {
+                const column = document.getElementById(status);
+                const count = column.querySelectorAll('[draggable="true"]').length;
+                column.querySelector('.text-sm').textContent = `${count} tasks`;
+            });
+        }
+
+        async function updateTaskStatus(taskId, newStatus) {
+            try {
+                const response = await fetch('../controller/task.controller.php', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `task_id=${taskId}&new_status=${newStatus}&action=update_status`
+                });
+                
+                const data = await response.json();
+                if (data.success) {
+                    // Show success message
+                    const successAlert = document.createElement('div');
+                    successAlert.className = 'fixed top-4 right-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded z-50';
+                    successAlert.innerHTML = `
+                        <div class="flex items-center">
+                            <i class="fas fa-check-circle mr-2"></i>
+                            <span>Task status updated successfully</span>
+                        </div>
+                    `;
+                    document.body.appendChild(successAlert);
+                    setTimeout(() => successAlert.remove(), 3000);
+                }
+                return data;
+            } catch (error) {
+                console.error('Error updating task status:', error);
+                return { success: false };
+            }
+        }
+
+        // Prevent dragover class from sticking
+        document.querySelectorAll('[ondrop]').forEach(column => {
+            column.addEventListener('dragleave', (e) => {
+                if (e.target === column) {
+                    column.classList.remove('bg-gray-100');
+                }
+            });
         });
     </script>
 </body>
