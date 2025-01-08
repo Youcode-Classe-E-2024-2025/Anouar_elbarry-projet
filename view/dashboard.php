@@ -3,13 +3,16 @@ session_start();
 require_once __DIR__ . "/../controller/classes/configDB.php";
 require_once __DIR__ . "/../controller/classes/user.php";
 require_once __DIR__ . "/../controller/classes/project.php";
+require_once __DIR__ . "/../controller/classes/task.php";
+require_once __DIR__ . "/../includes/helpers.php";
 
 // Check if user is logged in
 if (!isset($_SESSION['userid'])) {
     header('Location: auth/login.php');
     exit();
 }
-
+$db = new Database();
+$DONEtasks = Task::getAllTasksByStatus($db,'DONE');
 // Initialize user object
 $user = new User($_SESSION['username'], $_SESSION['email']);
 $user->setId($_SESSION['userid']);
@@ -75,7 +78,7 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                 <h2 class="mt-4 text-xl font-bold"><?=$_SESSION['username'] ?></h2>
                 <p class="text-gray-500"><?=$_SESSION['email'] ?></p>
                 <span class="inline-block mt-2 px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm">
-                    <?=$_SESSION['userRole'] ?>
+                    <?= $_SESSION['userRole'] ?>
                 </span>
             </div>
 
@@ -176,7 +179,7 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">Completed Tasks</h3>
-                            <p class="text-2xl font-semibold">45</p>
+                            <p class="text-2xl font-semibold"><?= count($DONEtasks) ?></p>
                         </div>
                     </div>
                 </div>
@@ -221,7 +224,7 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">Completed Tasks</h3>
-                            <p class="text-2xl font-semibold">5</p>
+                            <p class="text-2xl font-semibold"><?= count($DONEtasks) ?></p>
                         </div>
                     </div>
                 </div>
@@ -269,9 +272,9 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                                     </p>
                                     <?php endif; ?>
                                 </div>
-                                <button onclick="showProjectDetails(<?= $project['id'] ?>)" class="text-gray-400 hover:text-gray-600">
-                                    <i class="fas fa-ellipsis-v"></i>
-                                </button>
+                                <a href="components/project_details.php?project_id=<?= sanitize_project_id($project['id']) ?>" class="text-gray-400 hover:text-blue-600 transition-colors duration-200">
+                                    <i class="fas fa-external-link-alt"></i>
+                                </a>
                             </div>
                             <p class="text-gray-600 mb-4"><?= htmlspecialchars($project["description"]) ?></p>
                             
@@ -392,19 +395,25 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                     <!-- Project Progress Chart -->
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <h2 class="text-xl font-semibold mb-4">Project Progress</h2>
-                        <canvas id="projectProgressChart" width="400" height="300"></canvas>
+                        <div class="h-[300px]">
+                            <canvas id="projectProgressChart"></canvas>
+                        </div>
                     </div>
 
                     <!-- Team Performance Chart -->
                     <div class="bg-white rounded-xl shadow-md p-6">
                         <h2 class="text-xl font-semibold mb-4">Team Performance</h2>
-                        <canvas id="teamPerformanceChart" width="400" height="300"></canvas>
+                        <div class="h-[300px]">
+                            <canvas id="teamPerformanceChart"></canvas>
+                        </div>
                     </div>
 
                     <!-- Task Distribution Chart -->
                     <div class="bg-white rounded-xl shadow-md p-6 col-span-full">
                         <h2 class="text-xl font-semibold mb-4">Task Distribution</h2>
-                        <canvas id="taskDistributionChart" width="800" height="300"></canvas>
+                        <div class="h-[300px]">
+                            <canvas id="taskDistributionChart"></canvas>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -412,294 +421,172 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
         </div>
     </div>
 
-    <!-- Project Details Modal -->
-    <div id="projectDetailsModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center z-50">
-        <div class="bg-white rounded-xl p-6 w-full max-w-2xl m-4">
-            <div class="flex justify-between items-center mb-6">
-                <h2 class="text-2xl font-bold text-gray-800">Website Redesign Project</h2>
-                <button onclick="closeProjectModal()" class="text-gray-400 hover:text-gray-600">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-            
-            <div class="space-y-6">
-                <!-- Project Status -->
-                <div class="flex items-center space-x-4">
-                    <span class="px-3 py-1 rounded-full text-sm bg-blue-100 text-blue-800">Active</span>
-                    <span class="text-gray-600">
-                        <i class="fas fa-calendar mr-2"></i>Due: Jan 31, 2025
-                    </span>
-                </div>
-                
-                <!-- Project Description -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Description</h3>
-                    <p class="text-gray-600">
-                        Complete redesign of the company website with modern UI/UX principles. 
-                        Focus on improving user engagement and mobile responsiveness.
-                    </p>
-                </div>
-                
-                <!-- Project Progress -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-2">Progress</h3>
-                    <div class="w-full bg-gray-200 rounded-full h-2.5">
-                        <div class="bg-blue-600 h-2.5 rounded-full" style="width: 65%"></div>
-                    </div>
-                    <div class="flex justify-between mt-2 text-sm text-gray-600">
-                        <span>10 Tasks</span>
-                        <span>6 Completed</span>
-                    </div>
-                </div>
-                
-                <!-- Team Members -->
-                <div>
-                    <h3 class="text-lg font-semibold mb-3">Team Members</h3>
-                    <div class="grid grid-cols-2 gap-4">
-                        <!-- Team Member 1 -->
-                        <div class="flex items-center space-x-3 p-2 rounded-lg bg-gray-50">
-                            <img src="https://ui-avatars.com/api/?name=John+Doe" 
-                                 alt="John Doe" 
-                                 class="w-10 h-10 rounded-full">
-                            <div>
-                                <div class="font-medium">John Doe</div>
-                                <div class="text-sm text-gray-500">Project Manager</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Team Member 2 -->
-                        <div class="flex items-center space-x-3 p-2 rounded-lg bg-gray-50">
-                            <img src="https://ui-avatars.com/api/?name=Sarah+Smith" 
-                                 alt="Sarah Smith" 
-                                 class="w-10 h-10 rounded-full">
-                            <div>
-                                <div class="font-medium">Sarah Smith</div>
-                                <div class="text-sm text-gray-500">Designer</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Team Member 3 -->
-                        <div class="flex items-center space-x-3 p-2 rounded-lg bg-gray-50">
-                            <img src="https://ui-avatars.com/api/?name=Mike+Johnson" 
-                                 alt="Mike Johnson" 
-                                 class="w-10 h-10 rounded-full">
-                            <div>
-                                <div class="font-medium">Mike Johnson</div>
-                                <div class="text-sm text-gray-500">Developer</div>
-                            </div>
-                        </div>
-                        
-                        <!-- Team Member 4 -->
-                        <div class="flex items-center space-x-3 p-2 rounded-lg bg-gray-50">
-                            <img src="https://ui-avatars.com/api/?name=Emily+Brown" 
-                                 alt="Emily Brown" 
-                                 class="w-10 h-10 rounded-full">
-                            <div>
-                                <div class="font-medium">Emily Brown</div>
-                                <div class="text-sm text-gray-500">Content Writer</div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-                
-                <!-- Action Buttons -->
-                <div class="flex justify-end space-x-4 pt-4 border-t">
-                    <button onclick="editProject(1)" class="px-4 py-2 text-blue-600 hover:text-blue-700">
-                        <i class="fas fa-edit mr-2"></i>Edit Project
-                    </button>
-                    <button onclick="deleteProject(1)" class="px-4 py-2 text-red-600 hover:text-red-700">
-                        <i class="fas fa-trash-alt mr-2"></i>Delete Project
-                    </button>
-                    <a href="index.view.php?project_id=1" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600">
-                        <i class="fas fa-tasks mr-2"></i>View Tasks
-                    </a>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script>
-        function showProjectDetails(projectId) {
-            // Just show the modal
-            const modal = document.getElementById('projectDetailsModal');
-            modal.classList.remove('hidden');
-            modal.classList.add('flex');
-        }
-
-        function closeProjectModal() {
-            // Just hide the modal
-            const modal = document.getElementById('projectDetailsModal');
-            modal.classList.remove('flex');
-            modal.classList.add('hidden');
-        }
-
-        function deleteProject(projectId) {
-            if (confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
-                window.location.href = '../controller/delete_project.php?project_id=' + projectId;
-            }
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('projectDetailsModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('projectDetailsModal')) {
-                closeProjectModal();
-            }
-        });
-    </script>
-
     <!-- Include your modal for new project creation -->
     <?php include 'components/new-project-modal.php'; ?>
 
     <script>
         let currentProjectId = null;
 
-        // Show/Hide sections based on navigation
-        document.querySelectorAll('nav a').forEach(link => {
-            link.addEventListener('click', (e) => {
-                if (e.currentTarget.getAttribute('href').startsWith('#')) {
-                    e.preventDefault();
-                    const targetId = e.currentTarget.getAttribute('href').slice(1);
-                    document.querySelectorAll('section').forEach(section => {
-                        section.style.display = 'none';
-                    });
-                    document.getElementById(targetId).style.display = 'block';
-                }
+        document.addEventListener('DOMContentLoaded', function() {
+            // Navigation handlers
+            document.querySelectorAll('nav a').forEach(link => {
+                link.addEventListener('click', (e) => {
+                    if (e.currentTarget.getAttribute('href').startsWith('#')) {
+                        e.preventDefault();
+                        const targetId = e.currentTarget.getAttribute('href').slice(1);
+                        document.querySelectorAll('section').forEach(section => {
+                            section.style.display = 'none';
+                        });
+                        document.getElementById(targetId).style.display = 'block';
+                    }
+                });
             });
-        });
 
-        // Show/Hide new project modal
-        const newProjectBtn = document.getElementById('newProjectBtn');
-        const newProjectModal = document.getElementById('newProjectModal');
-        if (newProjectBtn && newProjectModal) {
-            newProjectBtn.addEventListener('click', () => {
-                newProjectModal.classList.remove('hidden');
-                newProjectModal.classList.add('flex');
-            });
-        }
-        const newProjectBtn2 = document.getElementById('newProjectBtn2');
-        if (newProjectBtn2 && newProjectModal) {
-            newProjectBtn2.addEventListener('click', () => {
-                newProjectModal.classList.remove('hidden');
-                newProjectModal.classList.add('flex');
-            });
-        }
-
-        function closeModal(modalId) {
-            const modal = document.getElementById(modalId);
-            if (modal) {
-                modal.classList.remove('flex');
-                modal.classList.add('hidden');
+            // Modal handlers
+            const newProjectBtn = document.getElementById('newProjectBtn');
+            const newProjectModal = document.getElementById('newProjectModal');
+            if (newProjectBtn && newProjectModal) {
+                newProjectBtn.addEventListener('click', () => {
+                    newProjectModal.classList.remove('hidden');
+                    newProjectModal.classList.add('flex');
+                });
             }
-        }
-
-        // Close modal when clicking outside
-        document.getElementById('projectDetailsModal').addEventListener('click', (e) => {
-            if (e.target === document.getElementById('projectDetailsModal')) {
-                closeProjectModal();
+            const newProjectBtn2 = document.getElementById('newProjectBtn2');
+            if (newProjectBtn2 && newProjectModal) {
+                newProjectBtn2.addEventListener('click', () => {
+                    newProjectModal.classList.remove('hidden');
+                    newProjectModal.classList.add('flex');
+                });
             }
-        });
 
-        // Charts
-        // Project Progress Chart
-        const projectProgressCtx = document.getElementById('projectProgressChart').getContext('2d');
-        new Chart(projectProgressCtx, {
-            type: 'bar',
-            data: {
-                labels: ['Project Management', 'Mobile App', 'Website', 'CRM', 'Marketing'],
-                datasets: [{
-                    label: 'Progress (%)',
-                    data: [65, 40, 25, 80, 55],
-                    backgroundColor: [
-                        'rgba(54, 162, 235, 0.6)',
-                        'rgba(255, 206, 86, 0.6)',
-                        'rgba(255, 99, 132, 0.6)',
-                        'rgba(75, 192, 192, 0.6)',
-                        'rgba(153, 102, 255, 0.6)'
-                    ],
-                    borderColor: [
-                        'rgba(54, 162, 235, 1)',
-                        'rgba(255, 206, 86, 1)',
-                        'rgba(255, 99, 132, 1)',
-                        'rgba(75, 192, 192, 1)',
-                        'rgba(153, 102, 255, 1)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100
-                    }
+            function closeModal(modalId) {
+                const modal = document.getElementById(modalId);
+                if (modal) {
+                    modal.classList.remove('flex');
+                    modal.classList.add('hidden');
                 }
             }
-        });
 
-        // Team Performance Chart
-        const teamPerformanceCtx = document.getElementById('teamPerformanceChart').getContext('2d');
-        new Chart(teamPerformanceCtx, {
-            type: 'radar',
-            data: {
-                labels: ['Marie', 'Pierre', 'Jean', 'Sophie', 'Emma'],
-                datasets: [{
-                    label: 'Performance',
-                    data: [85, 75, 65, 90, 70],
-                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
-                    borderColor: 'rgba(54, 162, 235, 1)',
-                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-                    pointBorderColor: '#fff',
-                    pointHoverBackgroundColor: '#fff',
-                    pointHoverBorderColor: 'rgba(54, 162, 235, 1)'
-                }]
-            },
-            options: {
-                responsive: true,
-                scale: {
-                    r: {
-                        beginAtZero: true,
-                        max: 100
+            // Close modal when clicking outside
+            const projectDetailsModal = document.getElementById('projectDetailsModal');
+            if (projectDetailsModal) {
+                projectDetailsModal.addEventListener('click', (e) => {
+                    if (e.target === projectDetailsModal) {
+                        closeProjectModal();
                     }
-                }
+                });
             }
-        });
 
-        // Task Distribution Chart
-        const taskDistributionCtx = document.getElementById('taskDistributionChart').getContext('2d');
-        new Chart(taskDistributionCtx, {
-            type: 'line',
-            data: {
-                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
-                datasets: [
-                    {
-                        label: 'Completed Tasks',
-                        data: [12, 19, 3, 5, 2, 3],
-                        borderColor: 'rgb(75, 192, 192)',
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Ongoing Tasks',
-                        data: [2, 3, 20, 5, 1, 4],
-                        borderColor: 'rgb(255, 205, 86)',
-                        tension: 0.1
-                    },
-                    {
-                        label: 'Delayed Tasks',
-                        data: [1, 2, 1, 3, 0, 2],
-                        borderColor: 'rgb(255, 99, 132)',
-                        tension: 0.1
+            // Initialize charts if user is project manager
+            console.log('User Role:', '<?php echo $_SESSION["userRole"] ?? "not set"; ?>');
+            
+            if ('<?php echo $_SESSION["userRole"] ?? ""; ?>' === 'PROJECT_MANAGER') {
+                try {
+                    // Project Progress Chart
+                    const projectProgressCanvas = document.getElementById('projectProgressChart');
+                    if (projectProgressCanvas) {
+                        console.log('Initializing Project Progress Chart');
+                        new Chart(projectProgressCanvas, {
+                            type: 'bar',
+                            data: {
+                                labels: ['Project Management', 'Mobile App', 'Website', 'CRM', 'Marketing'],
+                                datasets: [{
+                                    label: 'Progress (%)',
+                                    data: [65, 40, 25, 80, 55],
+                                    backgroundColor: 'rgba(54, 162, 235, 0.6)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    borderWidth: 1
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                scales: {
+                                    y: {
+                                        beginAtZero: true,
+                                        max: 100
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        console.error('Project Progress Canvas not found');
                     }
-                ]
-            },
-            options: {
-                responsive: true,
-                plugins: {
-                    title: {
-                        display: true,
-                        text: 'Task Distribution by Month'
+
+                    // Team Performance Chart
+                    const teamPerformanceCanvas = document.getElementById('teamPerformanceChart');
+                    if (teamPerformanceCanvas) {
+                        console.log('Initializing Team Performance Chart');
+                        new Chart(teamPerformanceCanvas, {
+                            type: 'radar',
+                            data: {
+                                labels: ['Marie', 'Pierre', 'Jean', 'Sophie', 'Emma'],
+                                datasets: [{
+                                    label: 'Performance',
+                                    data: [85, 75, 65, 90, 70],
+                                    backgroundColor: 'rgba(54, 162, 235, 0.2)',
+                                    borderColor: 'rgba(54, 162, 235, 1)',
+                                    pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+                                    pointBorderColor: '#fff'
+                                }]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                scales: {
+                                    r: {
+                                        beginAtZero: true,
+                                        max: 100
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        console.error('Team Performance Canvas not found');
                     }
+
+                    // Task Distribution Chart
+                    const taskDistributionCanvas = document.getElementById('taskDistributionChart');
+                    if (taskDistributionCanvas) {
+                        console.log('Initializing Task Distribution Chart');
+                        new Chart(taskDistributionCanvas, {
+                            type: 'line',
+                            data: {
+                                labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'],
+                                datasets: [
+                                    {
+                                        label: 'Completed Tasks',
+                                        data: [12, 19, 3, 5, 2, 3],
+                                        borderColor: 'rgb(75, 192, 192)',
+                                        tension: 0.1
+                                    },
+                                    {
+                                        label: 'Ongoing Tasks',
+                                        data: [2, 3, 20, 5, 1, 4],
+                                        borderColor: 'rgb(255, 205, 86)',
+                                        tension: 0.1
+                                    }
+                                ]
+                            },
+                            options: {
+                                responsive: true,
+                                maintainAspectRatio: true,
+                                plugins: {
+                                    title: {
+                                        display: true,
+                                        text: 'Task Distribution by Month'
+                                    }
+                                }
+                            }
+                        });
+                    } else {
+                        console.error('Task Distribution Canvas not found');
+                    }
+                } catch (error) {
+                    console.error('Error initializing charts:', error);
                 }
+            } else {
+                console.log('Not a project manager, charts will not be initialized');
             }
         });
     </script>
