@@ -65,4 +65,114 @@ class Project {
     return $projects;
     }
     
+    public static function getProjectRequests($db, $project_id = null) {
+        try {
+            $conn = $db->getConnection();
+            $query = "SELECT 
+                r.id as request_id,
+                r.status,
+                r.request_date,
+                r.response_date,
+                p.id as project_id,
+                p.name as project_name,
+                p.description as project_description,
+                u.id as user_id,
+                u.username,
+                u.email
+            FROM project_join_requests r
+            INNER JOIN projects p ON r.project_id = p.id
+            INNER JOIN users u ON r.user_id = u.id";
+            
+            if ($project_id) {
+                $query .= " WHERE p.id = :project_id";
+                $stmt = $conn->prepare($query);
+                $stmt->execute(['project_id' => $project_id]);
+            } else {
+                $stmt = $conn->prepare($query);
+                $stmt->execute();
+            }
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching project requests: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public static function getUserRequests($db, $user_id) {
+        try {
+            $conn = $db->getConnection();
+            $query = "SELECT 
+                r.id as request_id,
+                r.status,
+                r.request_date,
+                r.response_date,
+                p.id as project_id,
+                p.name as project_name,
+                p.description as project_description
+            FROM project_join_requests r
+            INNER JOIN projects p ON r.project_id = p.id
+            WHERE r.user_id = :user_id
+            ORDER BY r.request_date DESC";
+            
+            $stmt = $conn->prepare($query);
+            $stmt->execute(['user_id' => $user_id]);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching user requests: " . $e->getMessage());
+            return [];
+        }
+    }
+
+    public static function updateRequestStatus($db, $request_id, $status) {
+        try {
+            $conn = $db->getConnection();
+            $query = "UPDATE project_join_requests 
+                     SET status = :status, 
+                         response_date = CURRENT_TIMESTAMP 
+                     WHERE id = :request_id";
+            $stmt = $conn->prepare($query);
+            return $stmt->execute([
+                'status' => $status,
+                'request_id' => $request_id
+            ]);
+        } catch (PDOException $e) {
+            error_log("Error updating request status: " . $e->getMessage());
+            return false;
+        }
+    }
+
+    public static function createJoinRequest($db, $user_id, $project_id) {
+        try {
+            $conn = $db->getConnection();
+            
+            // Check if request already exists
+            $checkQuery = "SELECT id FROM project_join_requests 
+                         WHERE user_id = :user_id AND project_id = :project_id";
+            $checkStmt = $conn->prepare($checkQuery);
+            $checkStmt->execute([
+                'user_id' => $user_id,
+                'project_id' => $project_id
+            ]);
+            
+            if ($checkStmt->rowCount() > 0) {
+                return ['success' => false, 'message' => 'You have already requested to join this project'];
+            }
+            
+            // Create new request
+            $query = "INSERT INTO project_join_requests (user_id, project_id) 
+                     VALUES (:user_id, :project_id)";
+            $stmt = $conn->prepare($query);
+            $stmt->execute([
+                'user_id' => $user_id,
+                'project_id' => $project_id
+            ]);
+            
+            return $user_id;
+            
+        } catch (PDOException $e) {
+            error_log("Error creating join request: " . $e->getMessage());
+            return ['success' => false, 'message' => 'An error occurred while sending the request'];
+        }
+    }
 }

@@ -361,9 +361,10 @@ $DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
                                     <span><i class="fas fa-users mr-2"></i><?= count($projectMembers) ?> members</span>
                                     <span><i class="fas fa-tasks mr-2"></i><?= count($countTasks) ?> tasks</span>
                                 </div>
-                                <button class="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 focus:outline-none">
+                                <a href="../controller/request.controller.php?action=join&project_id=<?= $project['id'] ?>" 
+                                   class="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 focus:outline-none">
                                     Send Request
-                                </button>
+                                </a>
                             </div>
                         </div>
                     </div>  
@@ -375,24 +376,84 @@ $DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
             <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
             
             <section id="project-requests" class="mb-8">
-                <h2 class="text-2xl font-semibold mb-6">Project Requests</h2>
-                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                    <!-- Sample request card - Replace with actual data -->
-                    <div class="bg-white rounded-xl shadow-md p-6">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <h3 class="text-xl font-bold">Website Redesign</h3>
-                                <p class="text-sm text-gray-500">From: John Doe</p>
-                            </div>
-                            <span class="bg-yellow-100 text-yellow-600 px-2 py-1 rounded-full text-xs">Pending</span>
-                        </div>
-                        <p class="text-gray-600 mb-4">Request to join as a Frontend Developer</p>
-                        <div class="flex justify-end space-x-2">
-                            <button class="px-3 py-1 bg-green-500 text-white rounded hover:bg-green-600">Accept</button>
-                            <button class="px-3 py-1 bg-red-500 text-white rounded hover:bg-red-600">Decline</button>
-                        </div>
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold">Project Join Requests</h2>
+                </div>
+                <?php 
+                $projectRequests = Project::getProjectRequests($db);
+                if (!empty($projectRequests)): 
+                ?>
+                <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Request Date</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <?php foreach($projectRequests as $request): ?>
+                                <tr>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="flex items-center">
+                                            <div class="flex-shrink-0 h-10 w-10">
+                                                <img class="h-10 w-10 rounded-full" src="https://ui-avatars.com/api/?name=<?= urlencode($request['username']) ?>" alt="">
+                                            </div>
+                                            <div class="ml-4">
+                                                <div class="text-sm font-medium text-gray-900"><?= htmlspecialchars($request['username']) ?></div>
+                                                <div class="text-sm text-gray-500"><?= htmlspecialchars($request['email']) ?></div>
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-900"><?= htmlspecialchars($request['project_name']) ?></div>
+                                        <div class="text-sm text-gray-500"><?= htmlspecialchars(substr($request['project_description'], 0, 50)) ?>...</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                                        <?= date('M d, Y', strtotime($request['request_date'])) ?>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <?php
+                                        $statusColor = match($request['status']) {
+                                            'PENDING' => 'bg-yellow-100 text-yellow-800',
+                                            'ACCEPTED' => 'bg-green-100 text-green-800',
+                                            'REJECTED' => 'bg-red-100 text-red-800',
+                                            default => 'bg-gray-100 text-gray-800'
+                                        };
+                                        ?>
+                                        <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full <?= $statusColor ?>">
+                                            <?= $request['status'] ?>
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium">
+                                        <?php if($request['status'] === 'PENDING'): ?>
+                                        <div class="flex space-x-2">
+                                            <a href="../controller/request.controller.php?action=accept&request_id=<?= $request['request_id'] ?>" 
+                                               class="text-green-600 hover:text-green-900">
+                                                Accept
+                                            </a>
+                                            <a href="../controller/request.controller.php?action=reject&request_id=<?= $request['request_id'] ?>" 
+                                               class="text-red-600 hover:text-red-900">
+                                                Reject
+                                            </a>
+                                        </div>
+                                        <?php endif; ?>
+                                    </td>
+                                </tr>
+                                <?php endforeach; ?>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
+                <?php else: ?>
+                <div class="bg-white rounded-xl shadow-md p-6 text-center text-gray-500">
+                    No pending join requests at this time.
+                </div>
+                <?php endif; ?>
             </section>
 
              <!-- Reports Section -->
@@ -440,6 +501,69 @@ $DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
                 </div>
             </section>
             <?php endif ?>
+            <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
+            <!-- My Join Requests Section -->
+            <section id="my-requests" class="mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold">My Join Requests</h2>
+                </div>
+                <?php 
+                $userRequests = Project::getUserRequests($db, $_SESSION['userid']);
+                if (!empty($userRequests)): 
+                ?>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <?php foreach($userRequests as $request): ?>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900"><?= htmlspecialchars($request['project_name']) ?></h3>
+                                    <p class="text-sm text-gray-500 mt-1"><?= htmlspecialchars($request['project_description']) ?></p>
+                                </div>
+                                <?php
+                                $statusColor = match($request['status']) {
+                                    'PENDING' => 'bg-yellow-100 text-yellow-800',
+                                    'ACCEPTED' => 'bg-green-100 text-green-800',
+                                    'REJECTED' => 'bg-red-100 text-red-800',
+                                    default => 'bg-gray-100 text-gray-800'
+                                };
+                                ?>
+                                <span class="px-3 py-1 text-xs font-medium <?= $statusColor ?> rounded-full">
+                                    <?= $request['status'] ?>
+                                </span>
+                            </div>
+                            <div class="mt-4 flex justify-between items-center text-sm text-gray-500">
+                                <div>
+                                    <i class="far fa-clock mr-1"></i>
+                                    Requested: <?= date('M d, Y', strtotime($request['request_date'])) ?>
+                                </div>
+                                <?php if($request['response_date']): ?>
+                                <div>
+                                    <i class="far fa-calendar-check mr-1"></i>
+                                    Response: <?= date('M d, Y', strtotime($request['response_date'])) ?>
+                                </div>
+                                <?php endif; ?>
+                            </div>
+                            <?php if($request['status'] === 'ACCEPTED'): ?>
+                            <div class="mt-4">
+                                <a href="project.php?id=<?= $request['project_id'] ?>" 
+                                   class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700">
+                                    <i class="fas fa-arrow-right mr-2"></i>
+                                    View Project
+                                </a>
+                            </div>
+                            <?php endif; ?>
+                        </div>
+                    </div>
+                    <?php endforeach; ?>
+                </div>
+                <?php else: ?>
+                <div class="bg-white rounded-xl shadow-md p-6 text-center text-gray-500">
+                    You haven't made any project join requests yet.
+                </div>
+                <?php endif; ?>
+            </section>
+            <?php endif; ?>
         </div>
     </div>
 
