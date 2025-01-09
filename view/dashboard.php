@@ -29,6 +29,8 @@ foreach ($userProjects as $project) {
     }
 }
 
+$PublicProjects = Project::getPublicProjects($db);
+
 $teamcount = count($uniqueTeamMembers);
 
 $projectCount = is_array($userProjects) ? count($userProjects) : 0;
@@ -100,6 +102,13 @@ $DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
                             <i class="fas fa-project-diagram mr-3"></i>My Projects
                         </a>
                     </li>
+                    <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
+                    <li>
+                        <a href="#public-projects" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+                            <i class="fas fa-globe mr-3"></i>Public Projects
+                        </a>
+                    </li>
+                    <?php endif; ?>
                     <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                     <li>
                         <a href="#team-management" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
@@ -325,9 +334,46 @@ $DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
                     <?php endforeach; ?>
                 </div>
             </section>     
-
+ <!-- Public Projects Section -->
+            <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
+            <section id="public-projects" class="mb-8">
+                <div class="flex justify-between items-center mb-6">
+                    <h2 class="text-2xl font-semibold">Public Projects</h2>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                    <!-- Example Public Project Cards (Static for now) -->
+                     <?php 
+                      
+                     foreach($PublicProjects as $project): 
+                        $countTasks = Task::getTasksByProjectId($db,$project['id']);
+                        $projectMembers = $user->getProjectMembers($project['id']);?>
+                    <div class="bg-white rounded-xl shadow-md overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                        <div class="p-6">
+                            <div class="flex justify-between items-start mb-4">
+                                <div>
+                                    <h3 class="text-lg font-semibold text-gray-900"><?= $project['name'] ?></h3>
+                                    <p class="text-sm text-gray-500 mt-1"><?= $project['description'] ?></p>
+                                </div>
+                                <span class="px-3 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">Public</span>
+                            </div>
+                            <div class="flex items-center justify-between mt-4">
+                                <div class="flex items-center space-x-4 text-sm text-gray-500">
+                                    <span><i class="fas fa-users mr-2"></i><?= count($projectMembers) ?> members</span>
+                                    <span><i class="fas fa-tasks mr-2"></i><?= count($countTasks) ?> tasks</span>
+                                </div>
+                                <button class="px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700 focus:outline-none">
+                                    Send Request
+                                </button>
+                            </div>
+                        </div>
+                    </div>  
+                   <?php endforeach ?>
+                </div>
+            </section>
+            <?php endif; ?>
+<!-- Project Requests Section -->
             <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
-            <!-- Project Requests Section -->
+            
             <section id="project-requests" class="mb-8">
                 <h2 class="text-2xl font-semibold mb-6">Project Requests</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -119,9 +119,11 @@ $taskMembers = Task::getTaskMembers($db,$task_id,$project_id);
                        <div class="bg-gray-50 rounded-xl p-6">
                             <div class="flex justify-between items-center mb-4">
                                 <h2 class="text-xl font-semibold text-gray-900">Assigned Members</h2>
+                                <?php  if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                                 <button class="inline-flex items-center px-3 py-1.5 text-sm font-medium text-blue-600 hover:text-blue-700">
                                     <i class="fas fa-plus mr-2"></i>Add Member
                                 </button>
+                                <?php endif ?>
                             </div>
                             <div class="space-y-4">
                                 <?php if (!empty($taskMembers)): ?>
@@ -140,7 +142,9 @@ $taskMembers = Task::getTaskMembers($db,$task_id,$project_id);
                                                 <span class="text-xs px-2 py-1 rounded-full <?= $member['role'] === 'PROJECT_MANAGER' ? 'bg-purple-100 text-purple-800' : 'bg-gray-100 text-gray-800' ?>">
                                                     <?= $member['role'] === 'PROJECT_MANAGER' ? 'Manager' : 'Member' ?>
                                                 </span>
+                                                <?php  if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                                                 <button class="text-gray-400 hover:text-red-500"><i class="fas fa-times"></i></button>
+                                                <?php endif ?>
                                             </div>
                                         </div>
                                     <?php endforeach; ?>
@@ -221,8 +225,13 @@ $taskMembers = Task::getTaskMembers($db,$task_id,$project_id);
 
                                 <div>
                                     <label class="block text-sm font-medium text-gray-500 mb-1">Project Manager</label>
-                                    <div class="flex -space-x-2 overflow-hidden">
-                                        <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white" src="https://ui-avatars.com/api/?name=<?= $_SESSION['username'] ?>" alt="<?= $_SESSION['username'] ?>">
+                                    <div class="flex items-center">
+                                        <div class="flex -space-x-2 overflow-hidden">
+                                            <img class="inline-block h-8 w-8 rounded-full ring-2 ring-white" 
+                                                 src="https://ui-avatars.com/api/?name=<?= urlencode($project['creator_name']) ?>" 
+                                                 alt="<?= htmlspecialchars($project['creator_name']) ?>">
+                                        </div>
+                                        <span class="ml-3 text-sm text-gray-700"><?= htmlspecialchars($project['creator_name']) ?></span>
                                     </div>
                                 </div>
                             </div>

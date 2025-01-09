@@ -71,6 +71,19 @@ public static function getTaskByStatus($db, $status, $project_id) {
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $tasks;
 }
+public static function getTasksByProjectId($db, $project_id) {
+        $conn =  $db->getConnection();
+        $query = 'SELECT * FROM tasks WHERE project_id = :project_id';
+        $stmt = $conn->prepare($query);
+        $stmt->bindParam('project_id', $project_id, PDO::PARAM_STR);
+        $stmt->execute(
+            [
+                'project_id'=> $project_id
+            ]
+        );
+        $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        return $tasks;
+}
 public static function getTasksByUserAndStatus($db, $user_id, $project_id, $status = null) {
     $conn = $db->getConnection();
     $query = "SELECT 

@@ -177,11 +177,15 @@ class User {
     public function getProjectById($projectId) {
         try {
             $conn = $this->db->getConnection();
-            $query = "SELECT * FROM projects WHERE id = :project_id";
+            $query = "SELECT p.*, u.username as creator_name 
+                     FROM projects p
+                     INNER JOIN users u ON p.creator_id = u.id
+                     WHERE p.id = :project_id";
             $stmt = $conn->prepare($query);
             $stmt->execute(['project_id' => $projectId]);
             return $stmt->fetch(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            error_log("Error getting project: " . $e->getMessage());
             return null;
         }
     }

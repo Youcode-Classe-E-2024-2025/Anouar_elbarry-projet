@@ -62,3 +62,15 @@ CREATE TABLE task_assignments (
     FOREIGN KEY (user_id) REFERENCES users(id),
     FOREIGN KEY (project_id) REFERENCES projects(id)
 );
+
+CREATE TABLE project_join_requests (
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    user_id INT NOT NULL,
+    project_id INT NOT NULL,
+    status ENUM('PENDING', 'ACCEPTED', 'REJECTED') NOT NULL DEFAULT 'PENDING',
+    request_date TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    response_date TIMESTAMP NULL,
+    FOREIGN KEY (user_id) REFERENCES users(id),
+    FOREIGN KEY (project_id) REFERENCES projects(id) ON DELETE CASCADE,
+    UNIQUE KEY unique_request (user_id, project_id)
+);
