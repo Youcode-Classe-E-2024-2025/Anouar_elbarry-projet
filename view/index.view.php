@@ -11,6 +11,8 @@ $conn = $db->getConnection();
 // Initialize user
 $user = new User($_SESSION['username'], $_SESSION['email']);
 $user->setId($_SESSION['userid']);
+
+$userId = $_SESSION['userid'];
 if($_SERVER['REQUEST_METHOD'] === 'GET') {
     $project_id  = $_GET['project_id'] ;
     $_SESSION["project_id"] = $project_id ;
@@ -20,12 +22,19 @@ if (!$project) {
     header('Location: dashboard.php?error=project_not_found');
     exit();
 }
-$projectMembers = $user->getProjectMembers($project_id);
+$projectMembers = $user->getProjectMembers($project_id) ?? [];
 $category = new Category();
 $categories = $category::getAll($db) ;
 $IN_progresstasks = Task::getTaskByStatus($db,'IN_PROGRESS',$project_id);
 $TODOtasks = Task::getTaskByStatus($db,'TODO',$project_id);
 $DONEtasks = Task::getTaskByStatus($db,'DONE',$project_id);
+
+// users tasks
+$AllMemberTasks = Task::getTasksByUserAndStatus($db,$userId,$project_id);
+$TodoUserTasks = Task::getTasksByUserAndStatus($db,$userId,$project_id, "TODO");
+$ProgressUserTasks = Task::getTasksByUserAndStatus($db,$userId,$project_id, "IN_PROGRESS");
+$DoneUserTasks = Task::getTasksByUserAndStatus($db,$userId,$project_id, "DONE");
+
 
 $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
 ?>
@@ -181,7 +190,7 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
                     <div class="flex items-center space-x-4 text-sm text-gray-500">
                         <span><i class="fas fa-calendar mr-2"></i>Due: <?= $project["dueDate"]?></span>
                         <span><i class="fas fa-users mr-2"></i><?= count($projectMembers)?> members</span>
-                        <span><i class="fas fa-tasks mr-2"></i><?= $AllTasks?> tasks</span>
+                        <span><i class="fas fa-tasks mr-2"></i><?= $_SESSION['userRole'] == 'PROJECT_MANAGER' ? $AllTasks : count($AllMemberTasks) ?> tasks</span>
                     </div>
                 </div>
                 <div class="flex -space-x-2">
@@ -204,12 +213,12 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
             <div class="bg-gray-50 rounded-lg p-4" id="TODO" ondrop="drop(event)" ondragover="allowDrop(event)">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-semibold text-gray-800">To Do</h2>
-                    <span class="text-sm text-gray-500"><?= count($TODOtasks)?> tasks</span>
+                    <span class="text-sm text-gray-500"><?= $_SESSION['userRole'] == 'PROJECT_MANAGER' ? count($TODOtasks) : count($TodoUserTasks) ?> tasks</span>
                 </div>
                 <!-- Task Cards -->
                 <div class="space-y-4">
-                    <?php 
-                            foreach($TODOtasks as $task): 
+                    <?php $displayTasks = $_SESSION['userRole'] == 'PROJECT_MANAGER' ? $TODOtasks : $TodoUserTasks;
+                            foreach($displayTasks as $task): 
                                 // Determine priority color
                                 $priorityColor = match($task['priority']) {
                                     'HIGH' => 'bg-red-500',
@@ -280,11 +289,12 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
             <div class="bg-gray-50 rounded-lg p-4" id="IN_PROGRESS" ondrop="drop(event)" ondragover="allowDrop(event)">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-semibold text-gray-800">In Progress</h2>
-                    <span class="text-sm text-gray-500"><?= count($IN_progresstasks)?> Tasks</span>
+                    <span class="text-sm text-gray-500"><?= $_SESSION['userRole'] == 'PROJECT_MANAGER' ? count($IN_progresstasks) : count($ProgressUserTasks) ?> Tasks</span>
                 </div>
                 <div class="space-y-4">
                 <?php 
-                            foreach($IN_progresstasks as $task): 
+                            $displayTasks = $_SESSION['userRole'] == 'PROJECT_MANAGER' ? $IN_progresstasks : $ProgressUserTasks;
+                            foreach($displayTasks as $task): 
                                 // Determine priority color
                                 $priorityColor = match($task['priority']) {
                                     'HIGH' => 'bg-red-500',
@@ -352,11 +362,12 @@ $AllTasks = count($DONEtasks) + count($IN_progresstasks) + count($TODOtasks);
             <div class="bg-gray-50 rounded-lg p-4" id="DONE" ondrop="drop(event)" ondragover="allowDrop(event)">
                 <div class="flex justify-between items-center mb-4">
                     <h2 class="font-semibold text-gray-800">Done</h2>
-                    <span class="text-sm text-gray-500"><?= count($DONEtasks)?> tasks</span>
+                    <span class="text-sm text-gray-500"><?= $_SESSION['userRole'] == 'PROJECT_MANAGER' ? count($DONEtasks) : count($DoneUserTasks) ?> tasks</span>
                 </div>
                 <div class="space-y-4">
                 <?php 
-                            foreach($DONEtasks as $task): 
+                            $displayTasks = $_SESSION['userRole'] == 'PROJECT_MANAGER' ? $DONEtasks : $DoneUserTasks;
+                            foreach($displayTasks as $task): 
                                 // Determine priority color
                                 $priorityColor = match($task['priority']) {
                                     'HIGH' => 'bg-red-500',

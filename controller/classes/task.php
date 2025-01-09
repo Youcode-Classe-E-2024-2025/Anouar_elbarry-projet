@@ -71,7 +71,7 @@ public static function getTaskByStatus($db, $status, $project_id) {
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $tasks;
 }
-public static function getTasksByUserAndStatus($db, $user_id, $project_id, $status) {
+public static function getTasksByUserAndStatus($db, $user_id, $project_id, $status = null) {
     $conn = $db->getConnection();
     $query = "SELECT 
         t.id,
