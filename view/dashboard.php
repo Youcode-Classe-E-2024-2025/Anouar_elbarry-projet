@@ -16,7 +16,7 @@ $DONEtasks = Task::getAllTaskByStatus($db,'DONE');
 // Initialize user object
 $user = new User($_SESSION['username'], $_SESSION['email']);
 $user->setId($_SESSION['userid']);
-
+$userId = $user->getId();
 // Get user projects once and store the count
 $userProjects = $user->getUserProjects();
 $uniqueTeamMembers = [];
@@ -32,6 +32,12 @@ foreach ($userProjects as $project) {
 $teamcount = count($uniqueTeamMembers);
 
 $projectCount = is_array($userProjects) ? count($userProjects) : 0;
+
+// users tasks
+$AllMemberTasks = Task::getUsersTasks($db,$userId);
+$TodoUserTasks = Task::getUsersTasks($db,$userId, "TODO");
+$ProgressUserTasks = Task::getUsersTasks($db,$userId, "IN_PROGRESS");
+$DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -195,7 +201,7 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">My Tasks</h3>
-                            <p class="text-2xl font-semibold">8</p>
+                            <p class="text-2xl font-semibold"><?= count($DoneUserTasks) ?></p>
                         </div>
                     </div>
                 </div>
@@ -206,7 +212,7 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">Pending Tasks</h3>
-                            <p class="text-2xl font-semibold">3</p>
+                            <p class="text-2xl font-semibold"><?= count($ProgressUserTasks) ?></p>
                         </div>
                     </div>
                 </div>
@@ -217,7 +223,7 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">Completed Tasks</h3>
-                            <p class="text-2xl font-semibold">5</p>
+                            <p class="text-2xl font-semibold"><?= count($DoneUserTasks) ?></p>
                         </div>
                     </div>
                 </div>
@@ -318,30 +324,7 @@ $projectCount = is_array($userProjects) ? count($userProjects) : 0;
                     </div>
                     <?php endforeach; ?>
                 </div>
-            </section>
-
-            <!-- Tasks Section - Only visible for team members -->
-            <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
-            <section id="my-tasks" class="mb-8">
-                <h2 class="text-2xl font-semibold mb-6">My Tasks</h2>
-                <div class="bg-white rounded-xl shadow-md overflow-hidden">
-                    <table class="min-w-full">
-                        <thead class="bg-gray-50">
-                            <tr>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Task</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Project</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Due Date</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Priority</th>
-                            </tr>
-                        </thead>
-                        <tbody class="bg-white divide-y divide-gray-200">
-                            <!-- Task rows will be populated here -->
-                        </tbody>
-                    </table>
-                </div>
-            </section>
-            <?php endif; ?>
+            </section>     
 
             <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
             <!-- Project Requests Section -->

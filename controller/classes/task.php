@@ -115,6 +115,47 @@ public static function getTasksByUserAndStatus($db, $user_id, $project_id, $stat
         error_log("Error fetching tasks: " . $e->getMessage());
     }
 }
+public static function getUsersTasks($db, $user_id, $status = null) {
+    $conn = $db->getConnection();
+    $query = "SELECT 
+        t.id,
+        t.title,
+        t.description,
+        t.tag,
+        t.status,
+        t.priority,
+        t.dueDate,
+        t.createdAt,
+        u.username as user_name,
+        c.name as category_name
+    FROM tasks t
+    INNER JOIN task_assignments ta ON t.id = ta.task_id
+    INNER JOIN users u ON ta.user_id = u.id
+    LEFT JOIN categories c ON t.category_id = c.id
+    WHERE  ta.user_id = :user_id";
+
+    // Add status condition if provided
+    if ($status) {
+        $query .= " AND t.status = :status";
+    }
+
+    try {
+        $stmt = $conn->prepare($query);
+        
+        $params = [
+            ':user_id' => $user_id
+        ];
+
+        if ($status) {
+            $params[':status'] = $status;
+        }
+
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error fetching tasks: " . $e->getMessage());
+    }
+}
 public static function getAllTaskByStatus($db, $status) {
         $conn =  $db->getConnection();
         $query = 'SELECT * FROM tasks WHERE status = :status';

@@ -163,12 +163,13 @@ class User {
             $conn = $this->db->getConnection();
             $query = "SELECT u.id, u.username, u.email, tm.role, tm.joinedAt 
                      FROM users u 
-                     JOIN team_members tm ON u.id = tm.user_id 
+                     INNER JOIN team_members tm ON u.id = tm.user_id 
                      WHERE tm.project_id = :project_id";
             $stmt = $conn->prepare($query);
             $stmt->execute(['project_id' => $projectId]);
             return $stmt->fetchAll(PDO::FETCH_ASSOC);
         } catch (PDOException $e) {
+            error_log("Error getting project members: " . $e->getMessage());
             return [];
         }
     }
