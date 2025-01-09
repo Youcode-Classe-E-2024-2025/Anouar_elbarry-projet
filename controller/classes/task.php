@@ -71,6 +71,50 @@ public static function getTaskByStatus($db, $status, $project_id) {
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $tasks;
 }
+public static function getTasksByUserAndStatus($db, $user_id, $project_id, $status) {
+    $conn = $db->getConnection();
+    $query = "SELECT 
+        t.id,
+        t.title,
+        t.description,
+        t.tag,
+        t.status,
+        t.priority,
+        t.dueDate,
+        t.createdAt,
+        u.username as user_name,
+        c.name as category_name
+    FROM tasks t
+    INNER JOIN task_assignments ta ON t.id = ta.task_id
+    INNER JOIN users u ON ta.user_id = u.id
+    INNER JOIN projects p ON ta.project_id = p.id
+    LEFT JOIN categories c ON t.category_id = c.id
+    WHERE ta.project_id = :project_id 
+    AND ta.user_id = :user_id";
+
+    // Add status condition if provided
+    if ($status) {
+        $query .= " AND t.status = :status";
+    }
+
+    try {
+        $stmt = $conn->prepare($query);
+        
+        $params = [
+            ':user_id' => $user_id,
+            ':project_id' => $project_id
+        ];
+
+        if ($status) {
+            $params[':status'] = $status;
+        }
+
+        $stmt->execute($params);
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } catch (PDOException $e) {
+        error_log("Error fetching tasks: " . $e->getMessage());
+    }
+}
 public static function getAllTaskByStatus($db, $status) {
         $conn =  $db->getConnection();
         $query = 'SELECT * FROM tasks WHERE status = :status';
