@@ -8,7 +8,8 @@ if ($_SERVER['REQUEST_METHOD'] !== 'GET') {
     header('Location: ../view/dashboard.php');
     exit();
 }
-// creat user object
+
+// create user object
 $userId = $_SESSION['userid'];
 $userEmail = $_SESSION['email'];
 $user = new User($userId, $userEmail);
@@ -33,10 +34,20 @@ if ($action === 'join' && $project_id) {
 
 // Handle request status update (accept/reject)
 if ($request_id && in_array($action, ['accept', 'reject'])) {
+    // First get the request details to get user_id and project_id
+    $request = Project::getRequestById($db, $request_id);
+    if (!$request) {
+        $_SESSION['error'] = "Request not found";
+        header('Location: ../view/dashboard.php#project-requests');
+        exit();
+    }
+
     $status = $action === 'accept' ? 'ACCEPTED' : 'REJECTED';
     $success = Project::updateRequestStatus($db, $request_id, $status);
-    if($status == 'ACCEPTED'){
-        $user->assignProjectToUser($project_id, $user_id);
+    
+    if ($success && $status === 'ACCEPTED') {
+        // Use the user_id and project_id from the request
+        $user->assignProjectToUser($request['project_id'], $request['user_id'], 'TEAM_MEMBER');
     }
     
     if ($success) {

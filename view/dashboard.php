@@ -40,6 +40,12 @@ $AllMemberTasks = Task::getUsersTasks($db,$userId);
 $TodoUserTasks = Task::getUsersTasks($db,$userId, "TODO");
 $ProgressUserTasks = Task::getUsersTasks($db,$userId, "IN_PROGRESS");
 $DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
+
+// requests
+
+$userRequests = Project::getRequestsBystatus($db,'PENDING');
+
+//print_r($userRequests)
 ?>
 <!DOCTYPE html>
 <html lang="en">
@@ -119,7 +125,9 @@ $DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
                     <li>
                         <a href="#project-requests" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
                             <i class="fas fa-envelope mr-3"></i>Project Requests
-                            <span class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full">3</span>
+                            <?php if(count($userRequests)>0 ): ?>
+                            <span class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full"><?= count($userRequests ) ?></span>
+                            <?php endif ?>
                         </a>
                     </li>
                     <li>
@@ -508,7 +516,7 @@ $DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
                     <h2 class="text-2xl font-semibold">My Join Requests</h2>
                 </div>
                 <?php 
-                $userRequests = Project::getUserRequests($db, $_SESSION['userid']);
+               
                 if (!empty($userRequests)): 
                 ?>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

@@ -211,12 +211,6 @@ class User {
                      VALUES (:user_id, :project_id, :role)";
             $stmt = $conn->prepare($query);
             
-            // Log the values being inserted
-            error_log("Attempting to assign project with values:");
-            error_log("User ID: " . $userId);
-            error_log("Project ID: " . $projectId);
-            error_log("Role: " . $role);
-            
             $result = $stmt->execute([
                 'user_id' => $userId,
                 'project_id' => $projectId,
