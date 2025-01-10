@@ -56,7 +56,7 @@ class Task {
             return false;
         }
     }
-public static function getTaskByStatus($db, $status, $project_id) {
+public static function getTaskByStatus($db,string $status,int $project_id) {
         $conn =  $db->getConnection();
         $query = 'SELECT * FROM tasks WHERE status = :status AND project_id = :project_id';
         $stmt = $conn->prepare($query);
@@ -71,7 +71,7 @@ public static function getTaskByStatus($db, $status, $project_id) {
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $tasks;
 }
-public static function getTasksByProjectId($db, $project_id) {
+public static function getTasksByProjectId($db,int $project_id) {
         $conn =  $db->getConnection();
         $query = 'SELECT * FROM tasks WHERE project_id = :project_id';
         $stmt = $conn->prepare($query);
@@ -84,7 +84,7 @@ public static function getTasksByProjectId($db, $project_id) {
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $tasks;
 }
-public static function getTasksByUserAndStatus($db, $user_id, $project_id, $status = null) {
+public static function getTasksByUserAndStatus($db,int $user_id,int $project_id,string $status = null) {
     $conn = $db->getConnection();
     $query = "SELECT 
         t.id,
@@ -128,7 +128,7 @@ public static function getTasksByUserAndStatus($db, $user_id, $project_id, $stat
         error_log("Error fetching tasks: " . $e->getMessage());
     }
 }
-public static function getUsersTasks($db, $user_id, $status = null) {
+public static function getUsersTasks($db,int $user_id,string $status = null) {
     $conn = $db->getConnection();
     $query = "SELECT 
         t.id,
@@ -169,7 +169,7 @@ public static function getUsersTasks($db, $user_id, $status = null) {
         error_log("Error fetching tasks: " . $e->getMessage());
     }
 }
-public static function getAllTaskByStatus($db, $status,$creator_id) {
+public static function getAllTaskByStatus($db,string $status,int $creator_id) {
         $conn =  $db->getConnection();
         $query = '
         SELECT 
@@ -189,7 +189,7 @@ public static function getAllTaskByStatus($db, $status,$creator_id) {
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);
         return $tasks;
 }
-public static function getTaskById($db, $id) {
+public static function getTaskById($db,int $id) {
         $conn =  $db->getConnection();
         $query = 'SELECT * FROM tasks WHERE id = :id';
         $stmt = $conn->prepare($query);
@@ -202,7 +202,7 @@ public static function getTaskById($db, $id) {
         $task = $stmt->fetch(PDO::FETCH_ASSOC);
         return $task;
 }
-public static function getTaskMembers($db, $taskId, $projectId) {
+public static function getTaskMembers($db,int $taskId,int $projectId) {
     $conn = $db->getConnection();
     
     $query = "SELECT 
@@ -227,9 +227,7 @@ public static function getTaskMembers($db, $taskId, $projectId) {
         return [];
     }
 }
-
-    public function updateTask($title, $description, $priority, $dueDate){}
-    public function updateStatus($taskId, $newStatus) {
+    public function updateStatus(int $taskId,string $newStatus) {
         try {
             $sql = "UPDATE tasks SET status = :status WHERE id = :id";
             $stmt = $this->db->getConnection()->prepare($sql);
@@ -241,7 +239,7 @@ public static function getTaskMembers($db, $taskId, $projectId) {
             return false;
         }
     }
-    public static function deletTask($taskId, $db, $projectId){
+    public static function deletTask(int $taskId, $db,int $projectId){
         $conn = $db->getConnection();
         
         // First delete from task_assignments
@@ -271,6 +269,4 @@ public static function getTaskMembers($db, $taskId, $projectId) {
             return false;
         }
     }
-    public function addTag(){}
-    public function removeTag(){}
 }

@@ -17,7 +17,7 @@ class User {
     private Project $project;
     private Database $db;
     //Methodes
-    public function __construct($username, $email, $password = null) {
+    public function __construct(string $username,string $email,string $password = null) {
         $this->db = new Database(); 
         $this->username = $username;
         $this->email = $email;
@@ -27,7 +27,7 @@ class User {
     }
     
 
-    public function register($password){
+    public function register(string $password){
         $conn = $this->db->getConnection();
         $query = "INSERT INTO users (username, email, userPassword) VALUES (:username, :email, :password)";
         $stmt = $conn->prepare($query);
@@ -50,7 +50,7 @@ class User {
         }
     }
     
-    static function login($db ,$email, $password){
+    static function login($db ,string $email,string $password){
         $conn = $db->getConnection();
         $query = "SELECT * FROM users WHERE email=:email";
         $stmt = $conn->prepare($query);
@@ -65,10 +65,7 @@ class User {
     }
     return false;
     }
-    
-    public function updateProfile($name, $email){
-    }
-    public function creatproject($name, $description, $isPublic , $creatorId, $dueDate){
+    public function creatproject(string $name,string $description,int $isPublic ,int $creatorId, $dueDate){
         
 
         // Set user as project manager when creating their first project
@@ -97,19 +94,19 @@ class User {
     }
     // handle password
    
-    public function verifyPassword($inputPassword){
+    public function verifyPassword(string $inputPassword){
        return password_verify($inputPassword , $this->password);
     }   
     // setters
-    private function setPassword( $password ){
+    private function setPassword(string $password ){
        
         $this->password = password_hash($password, PASSWORD_DEFAULT);
      }
   
-    public function setId($id){
+    public function setId(int $id){
          $this->id=$id;
         }
-    public function setRole($role){
+    public function setRole(string $role){
             // role validation
             if(in_array($role,[self::ROLE_TEAM_MEMBER,self::ROLE_PROJECT_MANAGER])){
                 $this->role = $role;
@@ -158,7 +155,7 @@ class User {
             return [];
         }
     }
-    public function getProjectMembers($projectId) {
+    public function getProjectMembers(int $projectId) {
         try {
             $conn = $this->db->getConnection();
             $query = "SELECT u.id, u.username, u.email, tm.role, tm.joinedAt 
@@ -174,7 +171,7 @@ class User {
         }
     }
 
-    public function getProjectById($projectId) {
+    public function getProjectById(int $projectId) {
         try {
             $conn = $this->db->getConnection();
             $query = "SELECT p.*, u.username as creator_name 
@@ -190,7 +187,7 @@ class User {
         }
     }
 
-    public function removeProjectMember($projectId, $userId) {
+    public function removeProjectMember(int $projectId,int $userId) {
         try {
             $conn = $this->db->getConnection();
             $query = "DELETE FROM team_members WHERE project_id = :project_id AND user_id = :user_id";
@@ -204,7 +201,7 @@ class User {
         }
     }
 
-    public function assignProjectToUser($projectId, $userId, $role = self::ROLE_TEAM_MEMBER) {
+    public function assignProjectToUser(int $projectId,int $userId,string $role = self::ROLE_TEAM_MEMBER) {
         try {
             $conn = $this->db->getConnection();
             $query = "INSERT INTO team_members (user_id, project_id, role) 
@@ -238,7 +235,7 @@ class User {
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
         
     }   
-    public static function getUserById($id,$db){
+    public static function getUserById(int $id,$db){
                 $conn = $db->getConnection();
                 $query = "SELECT * FROM users WHERE id = :id";
                 $stmt = $conn->prepare($query);
@@ -257,7 +254,7 @@ class User {
                 return $stmt->fetchAll(PDO::FETCH_ASSOC);
         
     }   
-    public static function getUserData($email){
+    public static function getUserData(string $email){
                 $db = new Database();
                 $conn = $db->getConnection();
                 $query = "SELECT * FROM users WHERE email= :email";
@@ -284,7 +281,7 @@ class User {
         }
     }
 
-    public function getMemberProjects($memberId) {
+    public function getMemberProjects(int $memberId) {
         try {
             $sql = "SELECT DISTINCT p.* FROM projects p 
                    JOIN project_members pm ON p.id = pm.project_id 
@@ -299,7 +296,7 @@ class User {
         }
     }
 
-    public function addTeamMember($email, $role) {
+    public function addTeamMember(string $email,string $role) {
         try {
             // First check if user exists
             $sql = "SELECT id FROM users WHERE email = :email";
@@ -322,7 +319,7 @@ class User {
         }
     }
 
-    public function removeTeamMember($memberId) {
+    public function removeTeamMember(int $memberId) {
         try {
             // First remove from all projects
             $sql = "DELETE FROM project_members WHERE user_id = :member_id";
@@ -341,7 +338,7 @@ class User {
         }
     }
 
-    public function updateMemberRole($memberId, $newRole) {
+    public function updateMemberRole(int $memberId,string $newRole) {
         try {
             $sql = "UPDATE users SET role = :role WHERE id = :id";
             $stmt = $this->db->getConnection()->prepare($sql);

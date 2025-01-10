@@ -13,7 +13,7 @@ class Project {
 
     // Methodes
 
-    public function __construct($name, $description, $isPublic, $creator,$dueDate){
+    public function __construct(string $name,string $description,bool $isPublic,int $creator,$dueDate){
         $this->db = new Database();
         $this->name = $name;
         $this->description = $description;
@@ -21,8 +21,7 @@ class Project {
         $this->creator = $creator;
         $this->dueDate = $dueDate;
     }
-    public function getId(){}
-    public static function delet($project_id,$db){
+    public static function delet(int $project_id,$db){
         try {
             $conn = $db->getConnection();
             $query = "DELETE FROM projects WHERE id = :project_id";
@@ -38,8 +37,7 @@ class Project {
             return false;
         }
     }
-    public function addMember(){}
-    public static function removeMember($user_id,$project_id,$db){
+    public static function removeMember(int $user_id,int $project_id,$db){
         try {
             $conn = $db->getConnection();
             $query = "DELETE FROM team_members WHERE user_id = :user_id AND project_id = :project_id";
@@ -65,7 +63,7 @@ class Project {
     return $projects;
     }
     
-    public static function getProjectRequests($db ,$creator_id,$status = null ,$project_id = null) {
+    public static function getProjectRequests($db ,int $creator_id,string $status = null ,int $project_id = null) {
         try {
             $conn = $db->getConnection();
             $query = "SELECT 
@@ -120,7 +118,7 @@ class Project {
             return [];
         }
     }
-    public static function getRequestsBystatus($db,$status ,$creator_id,$project_id = null) {
+    public static function getRequestsBystatus($db,string $status ,int $creator_id,int $project_id = null) {
         try {
             $conn = $db->getConnection();
             $query = "SELECT 
@@ -171,7 +169,7 @@ class Project {
         }
     }
 
-    public static function getUserRequests($db, $user_id) {
+    public static function getUserRequests($db,int $user_id) {
         try {
             $conn = $db->getConnection();
             $query = "SELECT 
@@ -206,7 +204,7 @@ class Project {
         }
     }
 
-    public static function getRequestById($db, $request_id) {
+    public static function getRequestById($db,int $request_id) {
         try {
             $conn = $db->getConnection();
             $query = "SELECT 
@@ -234,7 +232,7 @@ class Project {
         }
     }
 
-    public static function updateRequestStatus($db, $request_id, $status) {
+    public static function updateRequestStatus($db,int $request_id,string $status) {
         try {
             $conn = $db->getConnection();
             $query = "UPDATE project_join_requests 
@@ -252,7 +250,7 @@ class Project {
         }
     }
 
-    public static function createJoinRequest($db, $user_id, $project_id) {
+    public static function createJoinRequest($db,int $user_id,int $project_id) {
         try {
             $conn = $db->getConnection();
             

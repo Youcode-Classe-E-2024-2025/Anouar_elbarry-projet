@@ -1,16 +1,16 @@
 <?php
 require_once __DIR__ ."/configDB.php";
 class Category{
-    private $id;
-    private $name;
-    private $description;
+    private int $id;
+    private string $name;
+    private string $description;
     private Database $db;
 
     public function __construct(){
         $this->db = new Database();
     }
 
-    public function creatCategory($name , $description){
+    public function creatCategory(string $name ,string $description){
         $conn = $this->db->getConnection();
         $query = "INSERT INTO categories (name, description) 
                  VALUES (:name, :description)";
@@ -26,7 +26,7 @@ class Category{
             return false;
         }
     }
-    public static function getByID($id,$db){
+    public static function getByID(int $id,$db){
         $conn = $db->getConnection();
         $query = "SELECT * FROM categories WHERE id = :id";
         $stmt = $conn->prepare($query);
@@ -38,7 +38,7 @@ class Category{
         );
         return $stmt->fetch(PDO::FETCH_ASSOC);
     } 
-    public static function getByname($name,$db){
+    public static function getByname(string $name,$db){
         $conn = $db->getConnection();
         $query = "SELECT * FROM categories WHERE name = :name";
         $stmt = $conn->prepare($query);
@@ -62,6 +62,4 @@ class Category{
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } 
-    public function updateCategory(){}
-    public function deleteCategory(){}
 }
