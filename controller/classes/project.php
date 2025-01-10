@@ -65,40 +65,7 @@ class Project {
     return $projects;
     }
     
-    public static function getProjectRequests($db, $project_id = null) {
-        try {
-            $conn = $db->getConnection();
-            $query = "SELECT 
-                r.id as request_id,
-                r.status,
-                r.request_date,
-                r.response_date,
-                p.id as project_id,
-                p.name as project_name,
-                p.description as project_description,
-                u.id as user_id,
-                u.username,
-                u.email
-            FROM project_join_requests r
-            INNER JOIN projects p ON r.project_id = p.id
-            INNER JOIN users u ON r.user_id = u.id";
-            
-            if ($project_id) {
-                $query .= " WHERE p.id = :project_id";
-                $stmt = $conn->prepare($query);
-                $stmt->execute(['project_id' => $project_id]);
-            } else {
-                $stmt = $conn->prepare($query);
-                $stmt->execute();
-            }
-            
-            return $stmt->fetchAll(PDO::FETCH_ASSOC);
-        } catch (PDOException $e) {
-            error_log("Error fetching project requests: " . $e->getMessage());
-            return [];
-        }
-    }
-    public static function getRequestsBystatus($db,$status ,$project_id = null) {
+    public static function getProjectRequests($db ,$creator_id,$status = null ,$project_id = null) {
         try {
             $conn = $db->getConnection();
             $query = "SELECT 
@@ -115,24 +82,85 @@ class Project {
             FROM project_join_requests r
             INNER JOIN projects p ON r.project_id = p.id
             INNER JOIN users u ON r.user_id = u.id
-            WHERE r.status = :status;
+            WHERE p.creator_id = :creator_id";
+            
+            if ($project_id) {
+                $query .= " AND p.id = :project_id";
+                $stmt = $conn->prepare($query);
+                $stmt->execute([
+                    'project_id' => $project_id,
+                    'creator_id' => $creator_id
+                ]);
+            } 
+            elseif ($status) {
+                $query .= " AND r.status = :status";
+                $stmt = $conn->prepare($query);
+                $stmt->execute([
+                    'status' => $status,
+                    'creator_id' => $creator_id
+                ]);
+            }
+            elseif($project_id && $status) {
+                $query .= "  AND p.id = :project_id AND r.status = :status";
+                $stmt = $conn->prepare($query);
+                $stmt->execute([
+                    'status' => $status,
+                    'project_id' => $project_id,
+                    'creator_id' => $creator_id
+                ]);
+            }
+            else {
+                $stmt = $conn->prepare($query);
+                $stmt->execute(['creator_id' => $creator_id]);
+            }
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+        } catch (PDOException $e) {
+            error_log("Error fetching project requests: " . $e->getMessage());
+            return [];
+        }
+    }
+    public static function getRequestsBystatus($db,$status ,$creator_id,$project_id = null) {
+        try {
+            $conn = $db->getConnection();
+            $query = "SELECT 
+                r.id as request_id,
+                r.status,
+                r.request_date,
+                r.response_date,
+                p.id as project_id,
+                p.name as project_name,
+                p.description as project_description,
+                u.id as user_id,
+                u.username,
+                u.email
+            FROM project_join_requests r
+            INNER JOIN projects p ON r.project_id = p.id
+            INNER JOIN users u ON r.user_id = u.id
+            WHERE r.status = :status AND p.creator_id;
             ";
             
             if ($project_id) {
-                $query .= "WHERE r.status = :status AND p.id = :project_id";
+                $query .= " AND p.id = :project_id";
                 $stmt = $conn->prepare($query);
                 $stmt->bindParam(":project_id", $project_id);
                 $stmt->bindParam(":status", $status);
+                $stmt->bindParam(":creator_id", $creator_id);
                 $stmt->execute([
                     'project_id' => $project_id,
-                    'status' => $status
+                    'status' => $status,
+                    'creator_id'=> $creator_id
                 ]);
             }
             else {
                 $stmt = $conn->prepare($query);
                 $stmt->bindParam(":status", $status);
+                $stmt->bindParam(":creator_id", $creator_id);
                 $stmt->execute(
-                    ['status' => $status]
+                    [
+                        'status' => $status,
+                        'creator_id' => $creator_id
+                    ]
                 );
             }
             
@@ -156,8 +184,7 @@ class Project {
                 p.description as project_description
             FROM project_join_requests r
             INNER JOIN projects p ON r.project_id = p.id
-            WHERE r.user_id = :user_id
-            ORDER BY r.request_date DESC";
+            WHERE r.user_id = :user_id";
             
             $stmt = $conn->prepare($query);
             $stmt->bindParam(':user_id', $user_id, PDO::PARAM_INT);

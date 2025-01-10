@@ -12,7 +12,7 @@ if (!isset($_SESSION['userid'])) {
     exit();
 }
 $db = new Database();
-$DONEtasks = Task::getAllTaskByStatus($db,'DONE');
+$DONEtasks = Task::getAllTaskByStatus($db,"DONE",$_SESSION['userid']);
 // Initialize user object
 $user = new User($_SESSION['username'], $_SESSION['email']);
 $user->setId($_SESSION['userid']);
@@ -31,19 +31,23 @@ foreach ($userProjects as $project) {
 
 $PublicProjects = Project::getPublicProjects($db);
 
+$projectRequests = Project::getProjectRequests($db,$userId);
+$pendingrequests = Project::getProjectRequests($db,$userId,'PENDING');
+
 $teamcount = count($uniqueTeamMembers);
 
 $projectCount = is_array($userProjects) ? count($userProjects) : 0;
 
 // users tasks
 $AllMemberTasks = Task::getUsersTasks($db,$userId);
+
 $TodoUserTasks = Task::getUsersTasks($db,$userId, "TODO");
 $ProgressUserTasks = Task::getUsersTasks($db,$userId, "IN_PROGRESS");
 $DoneUserTasks = Task::getUsersTasks($db,$userId, "DONE");
 
 // requests
 
-$userRequests = Project::getRequestsBystatus($db,'PENDING');
+$userRequestsPanding = Project::getRequestsBystatus($db,'PENDING',$userId);
 
 //print_r($userRequests)
 ?>
@@ -114,6 +118,11 @@ $userRequests = Project::getRequestsBystatus($db,'PENDING');
                             <i class="fas fa-globe mr-3"></i>Public Projects
                         </a>
                     </li>
+                    <li>
+                        <a href="#my-requests" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
+                        <i class="fa-regular fa-hand mr-3"></i>My Requests
+                        </a>
+                    </li>
                     <?php endif; ?>
                     <?php if($_SESSION['userRole'] == 'PROJECT_MANAGER'): ?>
                     <li>
@@ -125,8 +134,8 @@ $userRequests = Project::getRequestsBystatus($db,'PENDING');
                     <li>
                         <a href="#project-requests" class="flex items-center p-3 text-gray-700 hover:bg-blue-50 hover:text-blue-600 rounded-lg transition">
                             <i class="fas fa-envelope mr-3"></i>Project Requests
-                            <?php if(count($userRequests)>0 ): ?>
-                            <span class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full"><?= count($userRequests ) ?></span>
+                            <?php if(count($pendingrequests)>0 ): ?>
+                            <span class="ml-auto bg-red-500 text-white text-xs px-2 py-1 rounded-full"><?= count($pendingrequests ) ?></span>
                             <?php endif ?>
                         </a>
                     </li>
@@ -206,7 +215,7 @@ $userRequests = Project::getRequestsBystatus($db,'PENDING');
                         </div>
                         <div class="ml-4">
                             <h3 class="text-gray-500">Pending Requests</h3>
-                            <p class="text-2xl font-semibold">3</p>
+                            <p class="text-2xl font-semibold"> <?= count($pendingrequests) ?></p>
                         </div>
                     </div>
                 </div>
@@ -266,7 +275,9 @@ $userRequests = Project::getRequestsBystatus($db,'PENDING');
 
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                     <?php 
-                    foreach($userProjects as $project): 
+                  
+                        if($userProjects): 
+                            foreach($userProjects as $project):
                     ?>
                     <div class="block hover:transform hover:scale-105 transition-transform duration-200">
                         <div class="bg-white rounded-xl shadow-md p-6">
@@ -340,6 +351,13 @@ $userRequests = Project::getRequestsBystatus($db,'PENDING');
                         </div>
                     </div>
                     <?php endforeach; ?>
+                    <?php else: ?>
+                <div class="bg-white rounded-xl shadow-md p-6 text-center text-gray-500">
+                    You haven't made any project.
+                </div>
+                <?php endif; ?>
+                    
+                    
                 </div>
             </section>     
  <!-- Public Projects Section -->
@@ -388,7 +406,7 @@ $userRequests = Project::getRequestsBystatus($db,'PENDING');
                     <h2 class="text-2xl font-semibold">Project Join Requests</h2>
                 </div>
                 <?php 
-                $projectRequests = Project::getProjectRequests($db);
+                
                 if (!empty($projectRequests)): 
                 ?>
                 <div class="bg-white rounded-xl shadow-md overflow-hidden">
@@ -509,14 +527,14 @@ $userRequests = Project::getRequestsBystatus($db,'PENDING');
                 </div>
             </section>
             <?php endif ?>
-            <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
+           <?php if($_SESSION['userRole'] != 'PROJECT_MANAGER'): ?>
             <!-- My Join Requests Section -->
             <section id="my-requests" class="mb-8">
                 <div class="flex justify-between items-center mb-6">
                     <h2 class="text-2xl font-semibold">My Join Requests</h2>
                 </div>
                 <?php 
-               
+                $userRequests = Project::getUserRequests($db,$userId);
                 if (!empty($userRequests)): 
                 ?>
                 <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -554,7 +572,7 @@ $userRequests = Project::getRequestsBystatus($db,'PENDING');
                             </div>
                             <?php if($request['status'] === 'ACCEPTED'): ?>
                             <div class="mt-4">
-                                <a href="project.php?id=<?= $request['project_id'] ?>" 
+                                <a href="components/project_details.php?project_id=<?= $request['project_id'] ?>"
                                    class="inline-flex items-center px-4 py-2 text-sm font-medium text-blue-600 hover:text-blue-700">
                                     <i class="fas fa-arrow-right mr-2"></i>
                                     View Project
@@ -611,14 +629,6 @@ $userRequests = Project::getRequestsBystatus($db,'PENDING');
                     newProjectModal.classList.remove('hidden');
                     newProjectModal.classList.add('flex');
                 });
-            }
-
-            function closeModal(modalId) {
-                const modal = document.getElementById(modalId);
-                if (modal) {
-                    modal.classList.remove('flex');
-                    modal.classList.add('hidden');
-                }
             }
 
             // Close modal when clicking outside

@@ -169,14 +169,21 @@ public static function getUsersTasks($db, $user_id, $status = null) {
         error_log("Error fetching tasks: " . $e->getMessage());
     }
 }
-public static function getAllTaskByStatus($db, $status) {
+public static function getAllTaskByStatus($db, $status,$creator_id) {
         $conn =  $db->getConnection();
-        $query = 'SELECT * FROM tasks WHERE status = :status';
+        $query = '
+        SELECT 
+            t.*
+        FROM tasks t
+        INNER JOIN projects p ON t.project_id = p.id
+        WHERE t.status = :status AND p.creator_id = :creator_id';
         $stmt = $conn->prepare($query);
         $stmt->bindParam('status', $status, PDO::PARAM_STR);
+        $stmt->bindParam('creator_id', $creator_id, PDO::PARAM_STR);
         $stmt->execute(
             [
-                'status'=> $status
+                'status'=> $status,
+                'creator_id'=> $creator_id
             ]
         );
         $tasks = $stmt->fetchAll(PDO::FETCH_ASSOC);

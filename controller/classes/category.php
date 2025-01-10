@@ -55,6 +55,13 @@ class Category{
         $stmt->execute();
         return $stmt->fetchAll(PDO::FETCH_ASSOC);
     } 
+    public static function getAllName($db){
+        $conn = $db->getConnection();
+        $query = "SELECT name FROM categories";
+        $stmt = $conn->prepare($query);
+        $stmt->execute();
+        return $stmt->fetchAll(PDO::FETCH_ASSOC);
+    } 
     public function updateCategory(){}
     public function deleteCategory(){}
 }

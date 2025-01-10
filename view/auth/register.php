@@ -95,7 +95,7 @@
             <div class="px-8 py-4 bg-gray-50 text-center">
                 <p class="text-sm text-gray-600">
                     Already have an account? 
-                    <a href="view/auth/login.php" class="font-medium text-green-600 hover:text-green-500">
+                    <a href="login.php" class="font-medium text-green-600 hover:text-green-500">
                         Sign in
                     </a>
                 </p>

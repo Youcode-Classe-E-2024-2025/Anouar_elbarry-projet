@@ -26,7 +26,7 @@ if ($action === 'join' && $project_id) {
         $_SESSION['success'] = 'Request sent successfully';
     }
     else{
-        $_SESSION['error'] = 'Failed to send request';
+        $_SESSION['error'] = 'Request already exists';
     }
     header('Location: ../view/dashboard.php#public-projects');
     exit();
